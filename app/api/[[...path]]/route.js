@@ -231,6 +231,39 @@ async function handleRoute(request, { params }) {
     }
 
     // =============================================
+    // ADMIN: Update volunteer profile (core + data)
+    // =============================================
+    if (route === '/admin/volunteer-update' && method === 'POST') {
+      const user = await getUserFromToken(request)
+      if (!user) return cors(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
+      const adminSupabase = createAdminSupabase()
+      if (!(await isAdmin(adminSupabase, user.id))) return cors(NextResponse.json({ error: 'Forbidden' }, { status: 403 }))
+
+      const { target_user_id, core: coreUpdate, data: dataUpdate } = await request.json()
+      if (!target_user_id) return cors(NextResponse.json({ error: 'target_user_id required' }, { status: 400 }))
+
+      const promises = []
+      if (coreUpdate) {
+        promises.push(
+          adminSupabase.from('profiles_core')
+            .update({ ...coreUpdate, updated_at: new Date().toISOString() })
+            .eq('user_id', target_user_id)
+        )
+      }
+      if (dataUpdate) {
+        const { id, user_id, created_at, updated_at, ...cleanData } = dataUpdate
+        promises.push(
+          adminSupabase.from('profiles_data')
+            .update({ ...cleanData, updated_at: new Date().toISOString() })
+            .eq('user_id', target_user_id)
+        )
+      }
+
+      await Promise.all(promises)
+      return cors(NextResponse.json({ status: 'ok' }))
+    }
+
+    // =============================================
     // STOCK: List all stock items
     // =============================================
     if (route === '/admin/stock' && method === 'GET') {
