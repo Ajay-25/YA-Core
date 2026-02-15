@@ -116,6 +116,9 @@ backend:
         - working: true
           agent: "main"
           comment: "GET /api/health returns {status: ok, app: 'YA Core VRP'} - verified via curl"
+        - working: true
+          agent: "testing"
+          comment: "✅ VERIFIED: Both GET /api/health and GET /api/ return 200 with correct response {status: ok, app: 'YA Core VRP'}"
 
   - task: "Profile ensure API"
     implemented: true
