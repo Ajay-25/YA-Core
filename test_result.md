@@ -107,11 +107,11 @@ user_problem_statement: "YA Core VRP - Volunteer Resource Planning app with Supa
 backend:
   - task: "Health check API"
     implemented: true
-    working: true
+    working: "NA"
     file: "app/api/[[...path]]/route.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
         - working: true
           agent: "main"
@@ -122,11 +122,11 @@ backend:
 
   - task: "Profile ensure API"
     implemented: true
-    working: true
+    working: "NA"
     file: "app/api/[[...path]]/route.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
         - working: "NA"
           agent: "main"
