@@ -297,36 +297,8 @@ CREATE POLICY "inventory_logs_select_admin" ON inventory_logs FOR SELECT
 CREATE POLICY "inventory_logs_insert_admin" ON inventory_logs FOR INSERT
   WITH CHECK (EXISTS (SELECT 1 FROM profiles_core pc WHERE pc.user_id = auth.uid() AND pc.role = 'admin'));
 
--- ============================================
--- TRIGGER: Auto-create profile on signup
--- ============================================
-CREATE OR REPLACE FUNCTION handle_new_user()
-RETURNS TRIGGER AS $$
-BEGIN
-  INSERT INTO profiles_core (user_id, full_name, first_name, role, qr_code_url)
-  VALUES (
-    NEW.id,
-    COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
-    COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
-    'volunteer',
-    NEW.id::TEXT
-  );
-
-  INSERT INTO profiles_data (user_id, email_id)
-  VALUES (NEW.id, NEW.email);
-
-  INSERT INTO profiles_sensitive (user_id)
-  VALUES (NEW.id);
-
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-
-CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION handle_new_user();
+-- NOTE: Profile creation is handled by the app's /api/profile/ensure endpoint
+-- No database trigger needed - this avoids "Database error saving new user" issues
 
 -- ============================================
 -- DONE!
