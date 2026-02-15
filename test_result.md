@@ -101,3 +101,197 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: "YA Core VRP - Volunteer Resource Planning app with Supabase Auth (Magic Link), RBAC, profile management with tabs, QR scanner for kit issuance, and RLS security policies."
+
+backend:
+  - task: "Health check API"
+    implemented: true
+    working: "NA"
+    file: "app/api/[[...path]]/route.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "GET /api/health returns status ok"
+
+  - task: "Profile ensure API"
+    implemented: true
+    working: "NA"
+    file: "app/api/[[...path]]/route.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "POST /api/profile/ensure - creates profile if not exists using service role"
+
+  - task: "Admin set role API"
+    implemented: true
+    working: "NA"
+    file: "app/api/[[...path]]/route.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "POST /api/admin/set-role - requires admin auth, sets user role"
+
+  - task: "Admin inventory check API"
+    implemented: true
+    working: "NA"
+    file: "app/api/[[...path]]/route.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "POST /api/admin/inventory/check - checks kit issuance status"
+
+  - task: "Admin inventory issue API"
+    implemented: true
+    working: "NA"
+    file: "app/api/[[...path]]/route.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "POST /api/admin/inventory/issue - issues kit to volunteer"
+
+  - task: "Admin volunteers list API"
+    implemented: true
+    working: "NA"
+    file: "app/api/[[...path]]/route.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "GET /api/admin/volunteers - returns paginated volunteer list with search"
+
+  - task: "Admin volunteer detail API"
+    implemented: true
+    working: "NA"
+    file: "app/api/[[...path]]/route.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "GET /api/admin/volunteer/:id - returns full volunteer profile"
+
+  - task: "Admin sensitive update API"
+    implemented: true
+    working: "NA"
+    file: "app/api/[[...path]]/route.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "POST /api/admin/sensitive/update - updates sensitive data via service role"
+
+frontend:
+  - task: "Login page with Magic Link"
+    implemented: true
+    working: "NA"
+    file: "app/page.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Renders login card with email input and magic link button. Mobile-first design."
+
+  - task: "Auth callback page"
+    implemented: true
+    working: "NA"
+    file: "app/auth/callback/page.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Handles PKCE code exchange and redirects to dashboard"
+
+  - task: "Dashboard with profile tabs"
+    implemented: true
+    working: "NA"
+    file: "app/dashboard/page.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Full dashboard with Identity/Logistics/Docs tabs, mobile bottom nav, admin views"
+
+  - task: "QR Code view"
+    implemented: true
+    working: "NA"
+    file: "app/dashboard/page.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Shows user QR code using react-qr-code"
+
+  - task: "Admin Scanner view"
+    implemented: true
+    working: "NA"
+    file: "app/dashboard/page.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "QR scanner with camera + manual entry, kit status check, issue button"
+
+  - task: "Admin Volunteer List"
+    implemented: true
+    working: "NA"
+    file: "app/dashboard/page.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Searchable paginated volunteer list with detail view"
+
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "Health check API"
+    - "Profile ensure API"
+    - "Admin set role API"
+    - "Admin inventory check API"
+    - "Admin inventory issue API"
+    - "Admin volunteers list API"
+  stuck_tasks: []
+  test_all: true
+  test_priority: "high_first"
+
+agent_communication:
+    - agent: "main"
+      message: "All backend APIs implemented. The app uses Supabase for auth and database. API routes use service role key for admin operations. Note: Some endpoints require valid Supabase auth tokens. The testing agent should test: 1) Health check (no auth needed), 2) Unauthenticated access returns 401, 3) API routing works correctly. The Supabase database tables may not be set up yet (user needs to run SQL), so some Supabase operations may fail - that's expected. Focus on testing API structure and auth guards."
