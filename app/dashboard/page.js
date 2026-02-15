@@ -1121,13 +1121,14 @@ function App() {
   const { data: profileData, isLoading: profileLoading } = useQuery({
     queryKey: ['my-profile', user?.id],
     queryFn: async () => {
-      const [coreRes, dataRes] = await Promise.all([
-        supabase.from('profiles_core').select('*').eq('user_id', user.id).single(),
-        supabase.from('profiles_data').select('*').eq('user_id', user.id).single()
-      ])
-      return { core: coreRes.data, data: dataRes.data }
+      // Use API to bypass RLS
+      const res = await fetch('/api/profile/me', {
+        headers: { 'Authorization': `Bearer ${session.access_token}` }
+      })
+      if (!res.ok) throw new Error('Failed to fetch profile')
+      return res.json()
     },
-    enabled: !!user?.id && !needsSetup && !loading
+    enabled: !!user?.id && !!session && !needsSetup && !loading
   })
 
   useEffect(() => {
