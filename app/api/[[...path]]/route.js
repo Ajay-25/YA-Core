@@ -101,6 +101,39 @@ async function handleRoute(request, { params }) {
     }
 
     // =============================================
+    // PROFILE: Update my profile (bypasses RLS)
+    // =============================================
+    if (route === '/profile/update' && method === 'POST') {
+      const user = await getUserFromToken(request)
+      if (!user) return cors(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
+
+      const adminSupabase = createAdminSupabase()
+      const body = await request.json()
+      const { core: coreUpdate, data: dataUpdate } = body
+
+      const promises = []
+      if (coreUpdate) {
+        promises.push(
+          adminSupabase.from('profiles_core')
+            .update({ ...coreUpdate, updated_at: new Date().toISOString() })
+            .eq('user_id', user.id)
+        )
+      }
+      if (dataUpdate) {
+        // Remove any non-data fields that might leak in
+        const { id, user_id, created_at, updated_at, ...cleanData } = dataUpdate
+        promises.push(
+          adminSupabase.from('profiles_data')
+            .update({ ...cleanData, updated_at: new Date().toISOString() })
+            .eq('user_id', user.id)
+        )
+      }
+
+      await Promise.all(promises)
+      return cors(NextResponse.json({ status: 'ok' }))
+    }
+
+    // =============================================
     // ADMIN: Set user role
     // =============================================
     if (route === '/admin/set-role' && method === 'POST') {
