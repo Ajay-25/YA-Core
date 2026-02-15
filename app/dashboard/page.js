@@ -12,112 +12,34 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Separator } from '@/components/ui/separator'
-import { Switch } from '@/components/ui/switch'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ScrollArea } from '@/components/ui/scroll-area'
+import { Progress } from '@/components/ui/progress'
 import {
-  User, QrCode, ScanLine, Users, LogOut, Loader2, Save,
-  Search, ChevronRight, Package, CheckCircle2, XCircle,
+  Dialog, DialogContent, DialogDescription, DialogHeader,
+  DialogTitle, DialogTrigger, DialogFooter
+} from '@/components/ui/dialog'
+import {
+  User, QrCode, Users, LogOut, Loader2, Save,
+  Search, ChevronRight, Package, CheckCircle2,
   Shield, Phone, MapPin, Heart, Briefcase, FileText,
-  AlertTriangle, Camera, KeyboardIcon, ArrowLeft, UserCog
+  AlertTriangle, ArrowLeft, UserCog, Plus, Minus,
+  Box, History, Send, Trash2, Edit2, BarChart3
 } from 'lucide-react'
+import {
+  PERSONAL_FIELDS, CONTACT_FIELDS, ADDRESS_FIELDS, SEWA_FIELDS,
+  EDUCATION_FIELDS, YA_STATUS_FIELDS, SENSITIVE_FIELDS,
+  PROFILE_TABS, groupBySection
+} from '@/lib/field-configs'
 
 // ============================================================
-// FIELD CONFIGURATIONS
+// FORM FIELD COMPONENT
 // ============================================================
-const IDENTITY_FIELDS = [
-  { key: 'full_name', label: 'Full Name', type: 'text', source: 'core', section: 'Personal' },
-  { key: 'date_of_birth', label: 'Date of Birth', type: 'date', source: 'data', section: 'Personal' },
-  { key: 'gender', label: 'Gender', type: 'select', options: ['Male', 'Female', 'Other', 'Prefer not to say'], source: 'data', section: 'Personal' },
-  { key: 'nationality', label: 'Nationality', type: 'text', source: 'data', section: 'Personal' },
-  { key: 'blood_type', label: 'Blood Type', type: 'select', options: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Unknown'], source: 'data', section: 'Personal' },
-  { key: 'phone', label: 'Phone', type: 'tel', source: 'data', section: 'Contact' },
-  { key: 'alt_phone', label: 'Alt Phone', type: 'tel', source: 'data', section: 'Contact' },
-  { key: 'email_secondary', label: 'Secondary Email', type: 'email', source: 'data', section: 'Contact' },
-  { key: 'address_line1', label: 'Address Line 1', type: 'text', source: 'data', section: 'Address' },
-  { key: 'address_line2', label: 'Address Line 2', type: 'text', source: 'data', section: 'Address' },
-  { key: 'city', label: 'City', type: 'text', source: 'data', section: 'Address' },
-  { key: 'state', label: 'State', type: 'text', source: 'data', section: 'Address' },
-  { key: 'zip_code', label: 'ZIP Code', type: 'text', source: 'data', section: 'Address' },
-  { key: 'country', label: 'Country', type: 'text', source: 'data', section: 'Address' },
-  { key: 'emergency_contact_name', label: 'Emergency Contact', type: 'text', source: 'data', section: 'Emergency' },
-  { key: 'emergency_contact_phone', label: 'Emergency Phone', type: 'tel', source: 'data', section: 'Emergency' },
-  { key: 'emergency_contact_relation', label: 'Relationship', type: 'text', source: 'data', section: 'Emergency' },
-]
-
-const LOGISTICS_FIELDS = [
-  { key: 'uniform_size', label: 'Uniform Size', type: 'select', options: ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'], source: 'data', section: 'Sizing' },
-  { key: 't_shirt_size', label: 'T-Shirt Size', type: 'select', options: ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'], source: 'data', section: 'Sizing' },
-  { key: 'shoe_size', label: 'Shoe Size', type: 'text', source: 'data', section: 'Sizing' },
-  { key: 'cap_size', label: 'Cap Size', type: 'text', source: 'data', section: 'Sizing' },
-  { key: 'skills', label: 'Skills', type: 'text', source: 'data', section: 'Skills & Languages' },
-  { key: 'languages', label: 'Languages', type: 'text', source: 'data', section: 'Skills & Languages' },
-  { key: 'certifications', label: 'Certifications', type: 'text', source: 'data', section: 'Skills & Languages' },
-  { key: 'specializations', label: 'Specializations', type: 'text', source: 'data', section: 'Skills & Languages' },
-  { key: 'dietary_reqs', label: 'Dietary Requirements', type: 'text', source: 'data', section: 'Health' },
-  { key: 'allergies', label: 'Allergies', type: 'text', source: 'data', section: 'Health' },
-  { key: 'medical_conditions', label: 'Medical Conditions', type: 'text', source: 'data', section: 'Health' },
-  { key: 'medications', label: 'Medications', type: 'text', source: 'data', section: 'Health' },
-  { key: 'availability', label: 'Availability', type: 'text', source: 'data', section: 'Assignment' },
-  { key: 'preferred_location', label: 'Preferred Location', type: 'text', source: 'data', section: 'Assignment' },
-  { key: 'preferred_shift', label: 'Preferred Shift', type: 'text', source: 'data', section: 'Assignment' },
-  { key: 'zone_assigned', label: 'Zone Assigned', type: 'text', source: 'data', section: 'Assignment' },
-  { key: 'team_assigned', label: 'Team Assigned', type: 'text', source: 'data', section: 'Assignment' },
-  { key: 'transportation', label: 'Transportation', type: 'text', source: 'data', section: 'Travel' },
-  { key: 'has_vehicle', label: 'Has Vehicle', type: 'switch', source: 'data', section: 'Travel' },
-  { key: 'vehicle_type', label: 'Vehicle Type', type: 'text', source: 'data', section: 'Travel' },
-  { key: 'travel_mode', label: 'Travel Mode', type: 'text', source: 'data', section: 'Travel' },
-  { key: 'accommodation_needed', label: 'Accommodation Needed', type: 'switch', source: 'data', section: 'Travel' },
-  { key: 'accommodation_details', label: 'Accommodation Details', type: 'text', source: 'data', section: 'Travel' },
-  { key: 'arrival_date', label: 'Arrival Date', type: 'date', source: 'data', section: 'Travel' },
-  { key: 'departure_date', label: 'Departure Date', type: 'date', source: 'data', section: 'Travel' },
-  { key: 'education', label: 'Education', type: 'text', source: 'data', section: 'Professional' },
-  { key: 'occupation', label: 'Occupation', type: 'text', source: 'data', section: 'Professional' },
-  { key: 'organization', label: 'Organization', type: 'text', source: 'data', section: 'Professional' },
-  { key: 'department', label: 'Department', type: 'text', source: 'data', section: 'Professional' },
-  { key: 'designation', label: 'Designation', type: 'text', source: 'data', section: 'Professional' },
-  { key: 'years_of_experience', label: 'Years of Experience', type: 'number', source: 'data', section: 'Professional' },
-  { key: 'volunteer_id_number', label: 'Volunteer ID', type: 'text', source: 'data', section: 'Other' },
-  { key: 'reference_name', label: 'Reference Name', type: 'text', source: 'data', section: 'Other' },
-  { key: 'reference_phone', label: 'Reference Phone', type: 'tel', source: 'data', section: 'Other' },
-  { key: 'social_media', label: 'Social Media', type: 'text', source: 'data', section: 'Other' },
-  { key: 'special_needs', label: 'Special Needs', type: 'text', source: 'data', section: 'Other' },
-  { key: 'notes', label: 'Notes', type: 'textarea', source: 'data', section: 'Other' },
-]
-
-const SENSITIVE_FIELDS = [
-  { key: 'id_proof_type', label: 'ID Proof Type', type: 'select', options: ['Passport', 'Drivers License', 'National ID', 'Aadhaar', 'Other'], section: 'Documents' },
-  { key: 'id_proof_number', label: 'ID Proof Number', type: 'text', section: 'Documents' },
-  { key: 'id_proof_url', label: 'ID Proof URL', type: 'text', section: 'Documents' },
-  { key: 'background_check_status', label: 'Background Check', type: 'select', options: ['pending', 'in_progress', 'cleared', 'flagged', 'rejected'], section: 'Verification' },
-  { key: 'background_check_notes', label: 'Check Notes', type: 'textarea', section: 'Verification' },
-  { key: 'admin_notes', label: 'Admin Notes', type: 'textarea', section: 'Admin' },
-  { key: 'flag_status', label: 'Flag Status', type: 'select', options: ['none', 'watch', 'restricted', 'blocked'], section: 'Admin' },
-]
-
-// ============================================================
-// HELPER COMPONENTS
-// ============================================================
-
 function FormField({ field, value, onChange, disabled }) {
   const val = value ?? ''
 
-  if (field.type === 'switch') {
-    return (
-      <div className="flex items-center justify-between py-2">
-        <Label className="text-sm">{field.label}</Label>
-        <Switch
-          checked={!!val}
-          onCheckedChange={(checked) => onChange(field.key, checked)}
-          disabled={disabled}
-        />
-      </div>
-    )
-  }
-
   if (field.type === 'select') {
     return (
-      <div className="space-y-1.5">
+      <div className="space-y-1">
         <Label className="text-xs font-medium text-muted-foreground">{field.label}</Label>
         <select
           value={val}
@@ -126,9 +48,7 @@ function FormField({ field, value, onChange, disabled }) {
           className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
         >
           <option value="">Select...</option>
-          {(field.options || []).map(opt => (
-            <option key={opt} value={opt}>{opt}</option>
-          ))}
+          {(field.options || []).map(opt => <option key={opt} value={opt}>{opt}</option>)}
         </select>
       </div>
     )
@@ -136,26 +56,26 @@ function FormField({ field, value, onChange, disabled }) {
 
   if (field.type === 'textarea') {
     return (
-      <div className="space-y-1.5">
+      <div className="space-y-1 sm:col-span-2">
         <Label className="text-xs font-medium text-muted-foreground">{field.label}</Label>
         <textarea
           value={val}
           onChange={(e) => onChange(field.key, e.target.value)}
           disabled={disabled}
-          rows={3}
-          className="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+          rows={2}
+          className="flex min-h-[56px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
         />
       </div>
     )
   }
 
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-1">
       <Label className="text-xs font-medium text-muted-foreground">{field.label}</Label>
       <Input
         type={field.type || 'text'}
         value={val}
-        onChange={(e) => onChange(field.key, field.type === 'number' ? parseInt(e.target.value) || 0 : e.target.value)}
+        onChange={(e) => onChange(field.key, e.target.value)}
         disabled={disabled}
         className="h-9"
       />
@@ -163,43 +83,34 @@ function FormField({ field, value, onChange, disabled }) {
   )
 }
 
-function FieldSection({ title, icon, fields, formData, onChange, disabled }) {
+function FieldGroup({ title, icon, fields, formData, onChange, disabled }) {
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2 pt-2">
-        {icon}
-        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {fields.map(field => (
-          <FormField
-            key={field.key}
-            field={field}
-            value={formData[field.key]}
-            onChange={onChange}
-            disabled={disabled}
-          />
+    <div className="space-y-2">
+      {title && (
+        <div className="flex items-center gap-2 pt-2 pb-1">
+          {icon}
+          <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{title}</h4>
+        </div>
+      )}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+        {fields.map(f => (
+          <FormField key={f.key} field={f} value={formData[f.key]} onChange={onChange} disabled={disabled} />
         ))}
       </div>
     </div>
   )
 }
 
-function NavItem({ icon, label, active, onClick, badge }) {
+function NavItem({ icon, label, active, onClick }) {
   return (
     <button
       onClick={onClick}
-      className={`flex flex-col items-center justify-center gap-0.5 py-1.5 px-3 rounded-lg transition-colors relative ${
+      className={`flex flex-col items-center justify-center gap-0.5 py-1.5 px-3 rounded-lg transition-colors ${
         active ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
       }`}
     >
       {icon}
       <span className="text-[10px] font-medium">{label}</span>
-      {badge && (
-        <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-primary-foreground text-[9px] font-bold rounded-full flex items-center justify-center">
-          {badge}
-        </span>
-      )}
     </button>
   )
 }
@@ -207,52 +118,36 @@ function NavItem({ icon, label, active, onClick, badge }) {
 // ============================================================
 // PROFILE VIEW
 // ============================================================
-function ProfileView({ user, userRole, formData, setFormData, onSave, saving, isAdmin, targetUserId }) {
+function ProfileView({ user, userRole, formData, setFormData, onSave, saving, isAdmin }) {
   const handleChange = useCallback((key, value) => {
     setFormData(prev => ({ ...prev, [key]: value }))
   }, [setFormData])
 
-  const isViewingOwnProfile = !targetUserId || targetUserId === user?.id
   const sectionIcons = {
-    'Personal': <User className="h-4 w-4 text-blue-500" />,
-    'Contact': <Phone className="h-4 w-4 text-green-500" />,
-    'Address': <MapPin className="h-4 w-4 text-orange-500" />,
-    'Emergency': <Heart className="h-4 w-4 text-red-500" />,
-    'Sizing': <Package className="h-4 w-4 text-purple-500" />,
-    'Skills & Languages': <Briefcase className="h-4 w-4 text-indigo-500" />,
-    'Health': <Heart className="h-4 w-4 text-pink-500" />,
-    'Assignment': <MapPin className="h-4 w-4 text-teal-500" />,
-    'Travel': <MapPin className="h-4 w-4 text-cyan-500" />,
-    'Professional': <Briefcase className="h-4 w-4 text-amber-500" />,
-    'Other': <FileText className="h-4 w-4 text-gray-500" />,
-    'Documents': <FileText className="h-4 w-4 text-blue-500" />,
-    'Verification': <Shield className="h-4 w-4 text-green-500" />,
-    'Admin': <UserCog className="h-4 w-4 text-red-500" />,
+    'Permanent Address': <MapPin className="h-3.5 w-3.5 text-orange-500" />,
+    'Communication Address': <MapPin className="h-3.5 w-3.5 text-blue-500" />,
+    'Center & Zone': <Shield className="h-3.5 w-3.5 text-teal-500" />,
+    'Initiation': <Heart className="h-3.5 w-3.5 text-red-500" />,
+    'Sewa Areas - Permanent': <MapPin className="h-3.5 w-3.5 text-green-500" />,
+    'Sewa Areas - Current': <MapPin className="h-3.5 w-3.5 text-cyan-500" />,
+    'Qualification': <FileText className="h-3.5 w-3.5 text-indigo-500" />,
+    'Profession': <Briefcase className="h-3.5 w-3.5 text-amber-500" />,
+    'I-Card & Uniform': <Package className="h-3.5 w-3.5 text-purple-500" />,
+    'Orientation': <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />,
+    'Status': <BarChart3 className="h-3.5 w-3.5 text-blue-500" />,
+    'Digital & Apps': <Phone className="h-3.5 w-3.5 text-pink-500" />,
+    'Preferences': <Heart className="h-3.5 w-3.5 text-rose-500" />,
+    'Data Metadata': <FileText className="h-3.5 w-3.5 text-gray-500" />,
+    'ID Proof': <FileText className="h-3.5 w-3.5 text-blue-500" />,
+    'Admin': <UserCog className="h-3.5 w-3.5 text-red-500" />,
   }
-
-  const groupBySection = (fields) => {
-    const groups = {}
-    fields.forEach(f => {
-      if (!groups[f.section]) groups[f.section] = []
-      groups[f.section].push(f)
-    })
-    return groups
-  }
-
-  const identitySections = groupBySection(IDENTITY_FIELDS)
-  const logisticsSections = groupBySection(LOGISTICS_FIELDS)
-  const sensitiveSections = groupBySection(SENSITIVE_FIELDS)
 
   return (
     <div className="p-4 pb-6">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-3">
         <div>
-          <h2 className="text-lg font-bold">
-            {isViewingOwnProfile ? 'My Profile' : formData.full_name || 'Volunteer Profile'}
-          </h2>
-          <p className="text-xs text-muted-foreground">
-            {isViewingOwnProfile ? 'Manage your information' : `User ID: ${targetUserId}`}
-          </p>
+          <h2 className="text-lg font-bold">My Profile</h2>
+          <p className="text-xs text-muted-foreground">Manage your information across all sections</p>
         </div>
         <Button onClick={onSave} disabled={saving} size="sm" className="gap-1.5">
           {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
@@ -260,75 +155,64 @@ function ProfileView({ user, userRole, formData, setFormData, onSave, saving, is
         </Button>
       </div>
 
-      <Tabs defaultValue="identity" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-4">
-          <TabsTrigger value="identity" className="text-xs">Identity</TabsTrigger>
-          <TabsTrigger value="logistics" className="text-xs">Logistics</TabsTrigger>
-          <TabsTrigger value="docs" className="text-xs">Docs</TabsTrigger>
-        </TabsList>
+      <Tabs defaultValue="personal" className="w-full">
+        <div className="overflow-x-auto -mx-4 px-4 pb-1">
+          <TabsList className="inline-flex w-auto min-w-full sm:w-full h-9">
+            {PROFILE_TABS.map(tab => (
+              <TabsTrigger key={tab.id} value={tab.id} className="text-[11px] px-2.5 whitespace-nowrap">
+                {tab.label}
+              </TabsTrigger>
+            ))}
+            {isAdmin && (
+              <TabsTrigger value="sensitive" className="text-[11px] px-2.5 whitespace-nowrap">
+                Admin
+              </TabsTrigger>
+            )}
+          </TabsList>
+        </div>
 
-        <TabsContent value="identity" className="mt-0">
-          <Card>
-            <CardContent className="pt-4 space-y-4">
-              {Object.entries(identitySections).map(([section, fields]) => (
-                <FieldSection
-                  key={section}
-                  title={section}
-                  icon={sectionIcons[section]}
-                  fields={fields}
-                  formData={formData}
-                  onChange={handleChange}
-                />
-              ))}
-            </CardContent>
-          </Card>
-        </TabsContent>
+        {PROFILE_TABS.map(tab => {
+          const sections = groupBySection(tab.fields)
+          const hasSections = Object.keys(sections).some(s => s !== 'General')
 
-        <TabsContent value="logistics" className="mt-0">
-          <Card>
-            <CardContent className="pt-4 space-y-4">
-              {Object.entries(logisticsSections).map(([section, fields]) => (
-                <FieldSection
-                  key={section}
-                  title={section}
-                  icon={sectionIcons[section]}
-                  fields={fields}
-                  formData={formData}
-                  onChange={handleChange}
-                />
-              ))}
-            </CardContent>
-          </Card>
-        </TabsContent>
+          return (
+            <TabsContent key={tab.id} value={tab.id} className="mt-3">
+              <Card>
+                <CardContent className="pt-4 space-y-3 pb-4">
+                  {hasSections ? (
+                    Object.entries(sections).map(([section, fields]) => (
+                      <FieldGroup
+                        key={section}
+                        title={section}
+                        icon={sectionIcons[section] || null}
+                        fields={fields}
+                        formData={formData}
+                        onChange={handleChange}
+                      />
+                    ))
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {tab.fields.map(f => (
+                        <FormField key={f.key} field={f} value={formData[f.key]} onChange={handleChange} />
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )
+        })}
 
-        <TabsContent value="docs" className="mt-0">
-          {isAdmin ? (
+        {isAdmin && (
+          <TabsContent value="sensitive" className="mt-3">
             <Card>
-              <CardContent className="pt-4 space-y-4">
-                {Object.entries(sensitiveSections).map(([section, fields]) => (
-                  <FieldSection
-                    key={section}
-                    title={section}
-                    icon={sectionIcons[section]}
-                    fields={fields}
-                    formData={formData}
-                    onChange={handleChange}
-                  />
-                ))}
+              <CardContent className="py-8 text-center">
+                <Shield className="h-10 w-10 text-muted-foreground/40 mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">Sensitive data is view-only from your own profile.<br/>Use the Volunteers list to manage sensitive fields.</p>
               </CardContent>
             </Card>
-          ) : (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <Shield className="h-12 w-12 text-muted-foreground/40 mx-auto mb-3" />
-                <h3 className="font-semibold text-base mb-1">Restricted Access</h3>
-                <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-                  Document information is managed by administrators. Contact your coordinator for any updates.
-                </p>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   )
@@ -337,13 +221,10 @@ function ProfileView({ user, userRole, formData, setFormData, onSave, saving, is
 // ============================================================
 // QR CODE VIEW
 // ============================================================
-function QRCodeView({ user, userName }) {
+function QRCodeView({ user, coreData }) {
   const [QRCode, setQRCode] = useState(null)
-
   useEffect(() => {
-    import('react-qr-code').then(mod => {
-      setQRCode(() => mod.default || mod)
-    })
+    import('react-qr-code').then(mod => setQRCode(() => mod.default || mod))
   }, [])
 
   return (
@@ -351,7 +232,7 @@ function QRCodeView({ user, userName }) {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center pb-2">
           <CardTitle className="text-lg">My QR Code</CardTitle>
-          <CardDescription>Show this to admins for kit collection</CardDescription>
+          <CardDescription>Show this for identification</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center space-y-4 pb-6">
           <div className="bg-white p-4 rounded-xl shadow-inner">
@@ -364,8 +245,9 @@ function QRCodeView({ user, userName }) {
             )}
           </div>
           <div className="text-center">
-            <p className="font-semibold text-lg">{userName || 'Volunteer'}</p>
-            <p className="text-xs text-muted-foreground font-mono mt-1">{user?.id}</p>
+            <p className="font-semibold text-lg">{coreData?.full_name || 'Volunteer'}</p>
+            {coreData?.ya_id && <Badge variant="secondary" className="mt-1">{coreData.ya_id}</Badge>}
+            <p className="text-xs text-muted-foreground font-mono mt-2">{user?.id}</p>
           </div>
         </CardContent>
       </Card>
@@ -374,306 +256,483 @@ function QRCodeView({ user, userName }) {
 }
 
 // ============================================================
-// ADMIN SCANNER VIEW
+// STOCK MANAGEMENT VIEW (replaces Scanner)
 // ============================================================
-function ScannerView({ user, session }) {
-  const [mode, setMode] = useState('idle') // idle, scanning, manual, result
-  const [scanResult, setScanResult] = useState(null)
-  const [volunteerInfo, setVolunteerInfo] = useState(null)
-  const [kitStatus, setKitStatus] = useState(null)
-  const [issuing, setIssuing] = useState(false)
-  const [manualId, setManualId] = useState('')
-  const [loading, setLoading] = useState(false)
-  const scannerRef = useRef(null)
+function StockManagementView({ session }) {
+  const [activeTab, setActiveTab] = useState('inventory')
+  const queryClient = useQueryClient()
 
-  const stopScanner = useCallback(async () => {
-    if (scannerRef.current) {
-      try {
-        if (scannerRef.current.isScanning) {
-          await scannerRef.current.stop()
-        }
-      } catch (e) {
-        // ignore
-      }
-      scannerRef.current = null
-    }
-  }, [])
+  // Fetch stock items
+  const { data: stockData, isLoading: stockLoading } = useQuery({
+    queryKey: ['stock-items'],
+    queryFn: async () => {
+      const res = await fetch('/api/admin/stock', {
+        headers: { 'Authorization': `Bearer ${session.access_token}` }
+      })
+      if (!res.ok) throw new Error('Failed to fetch stock')
+      return res.json()
+    },
+    enabled: !!session
+  })
 
-  const lookupVolunteer = useCallback(async (userId) => {
-    setLoading(true)
-    setScanResult(userId)
-    setMode('result')
+  return (
+    <div className="p-4 pb-6">
+      <div className="mb-4">
+        <h2 className="text-lg font-bold">Stock Management</h2>
+        <p className="text-xs text-muted-foreground">Manage inventory & issue stock to volunteers</p>
+      </div>
 
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-3 mb-4">
+          <TabsTrigger value="inventory" className="text-xs gap-1"><Box className="h-3.5 w-3.5" />Inventory</TabsTrigger>
+          <TabsTrigger value="issue" className="text-xs gap-1"><Send className="h-3.5 w-3.5" />Issue</TabsTrigger>
+          <TabsTrigger value="history" className="text-xs gap-1"><History className="h-3.5 w-3.5" />History</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="inventory" className="mt-0">
+          <InventoryTab session={session} stockData={stockData} stockLoading={stockLoading} />
+        </TabsContent>
+
+        <TabsContent value="issue" className="mt-0">
+          <IssueStockTab session={session} stockItems={stockData?.data || []} />
+        </TabsContent>
+
+        <TabsContent value="history" className="mt-0">
+          <IssuanceHistoryTab session={session} />
+        </TabsContent>
+      </Tabs>
+    </div>
+  )
+}
+
+// -- INVENTORY TAB --
+function InventoryTab({ session, stockData, stockLoading }) {
+  const [showAddDialog, setShowAddDialog] = useState(false)
+  const [editItem, setEditItem] = useState(null)
+  const [form, setForm] = useState({ name: '', category: 'General', description: '', total_quantity: 0, unit: 'pcs', min_stock_level: 0 })
+  const [saving, setSaving] = useState(false)
+  const queryClient = useQueryClient()
+
+  const items = stockData?.data || []
+
+  const handleSave = async () => {
+    setSaving(true)
     try {
-      const res = await fetch('/api/admin/inventory/check', {
+      const url = editItem ? '/api/admin/stock/update' : '/api/admin/stock'
+      const body = editItem ? { id: editItem.id, ...form } : form
+
+      const res = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          target_user_id: userId,
-          item_type: 'Kit',
-          year: 2026
-        })
+        headers: { 'Authorization': `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
       })
 
-      if (!res.ok) {
-        toast.error('Failed to lookup volunteer')
-        setLoading(false)
-        return
+      if (res.ok) {
+        toast.success(editItem ? 'Item updated!' : 'Item added!')
+        queryClient.invalidateQueries({ queryKey: ['stock-items'] })
+        setShowAddDialog(false)
+        setEditItem(null)
+        setForm({ name: '', category: 'General', description: '', total_quantity: 0, unit: 'pcs', min_stock_level: 0 })
+      } else {
+        const data = await res.json()
+        toast.error(data.error || 'Failed')
       }
+    } catch { toast.error('Network error') }
+    setSaving(false)
+  }
 
-      const data = await res.json()
-      setVolunteerInfo(data.volunteer ? { ...data.volunteer, ...data.volunteerData } : null)
-      setKitStatus(data.issued ? 'issued' : 'not_issued')
-    } catch (err) {
-      toast.error('Error looking up volunteer')
-      console.error(err)
+  const handleDelete = async (id) => {
+    if (!confirm('Delete this item?')) return
+    const res = await fetch('/api/admin/stock/delete', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id })
+    })
+    if (res.ok) {
+      toast.success('Item deleted')
+      queryClient.invalidateQueries({ queryKey: ['stock-items'] })
     }
-    setLoading(false)
-  }, [session])
+  }
 
-  const startScanning = useCallback(async () => {
-    setMode('scanning')
-    try {
-      const { Html5Qrcode } = await import('html5-qrcode')
-      const html5QrCode = new Html5Qrcode('qr-reader')
-      scannerRef.current = html5QrCode
+  const openEdit = (item) => {
+    setEditItem(item)
+    setForm({
+      name: item.name,
+      category: item.category || 'General',
+      description: item.description || '',
+      total_quantity: item.total_quantity,
+      unit: item.unit || 'pcs',
+      min_stock_level: item.min_stock_level || 0
+    })
+    setShowAddDialog(true)
+  }
 
-      await html5QrCode.start(
-        { facingMode: 'environment' },
-        { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 },
-        async (decodedText) => {
-          await stopScanner()
-          lookupVolunteer(decodedText.trim())
-        },
-        () => {} // ignore errors
-      )
-    } catch (err) {
-      console.error('Scanner error:', err)
-      toast.error('Could not start camera. Try manual entry.')
-      setMode('manual')
+  const categories = [...new Set(items.map(i => i.category || 'General'))]
+
+  return (
+    <div className="space-y-3">
+      <div className="flex justify-between items-center">
+        <p className="text-sm font-medium">{items.length} items in inventory</p>
+        <Dialog open={showAddDialog} onOpenChange={(open) => { setShowAddDialog(open); if (!open) { setEditItem(null); setForm({ name: '', category: 'General', description: '', total_quantity: 0, unit: 'pcs', min_stock_level: 0 }) } }}>
+          <DialogTrigger asChild>
+            <Button size="sm" className="gap-1.5"><Plus className="h-3.5 w-3.5" />Add Item</Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>{editItem ? 'Edit Item' : 'Add Stock Item'}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3 py-2">
+              <div className="space-y-1"><Label className="text-xs">Item Name *</Label><Input value={form.name} onChange={e => setForm(p => ({...p, name: e.target.value}))} placeholder="e.g. Kit Bag, T-Shirt M" /></div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1"><Label className="text-xs">Category</Label><Input value={form.category} onChange={e => setForm(p => ({...p, category: e.target.value}))} placeholder="General" /></div>
+                <div className="space-y-1"><Label className="text-xs">Unit</Label><Input value={form.unit} onChange={e => setForm(p => ({...p, unit: e.target.value}))} placeholder="pcs" /></div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1"><Label className="text-xs">Total Quantity</Label><Input type="number" value={form.total_quantity} onChange={e => setForm(p => ({...p, total_quantity: parseInt(e.target.value) || 0}))} /></div>
+                <div className="space-y-1"><Label className="text-xs">Min Stock Level</Label><Input type="number" value={form.min_stock_level} onChange={e => setForm(p => ({...p, min_stock_level: parseInt(e.target.value) || 0}))} /></div>
+              </div>
+              <div className="space-y-1"><Label className="text-xs">Description</Label><Input value={form.description} onChange={e => setForm(p => ({...p, description: e.target.value}))} /></div>
+            </div>
+            <DialogFooter>
+              <Button onClick={handleSave} disabled={saving || !form.name} className="w-full">
+                {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                {editItem ? 'Update' : 'Add Item'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {stockLoading ? (
+        Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)
+      ) : items.length === 0 ? (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <Box className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
+            <h3 className="font-semibold mb-1">No items yet</h3>
+            <p className="text-sm text-muted-foreground">Add stock items to start tracking inventory</p>
+          </CardContent>
+        </Card>
+      ) : (
+        categories.map(cat => (
+          <div key={cat}>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">{cat}</h3>
+            <div className="space-y-2">
+              {items.filter(i => (i.category || 'General') === cat).map(item => {
+                const available = item.total_quantity - (item.issued_quantity || 0)
+                const pct = item.total_quantity > 0 ? (available / item.total_quantity) * 100 : 0
+                const isLow = available <= (item.min_stock_level || 0) && item.total_quantity > 0
+
+                return (
+                  <Card key={item.id} className={isLow ? 'border-amber-300 bg-amber-50/50' : ''}>
+                    <CardContent className="p-3">
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-medium text-sm">{item.name}</h4>
+                            {isLow && <Badge variant="outline" className="text-[9px] border-amber-500 text-amber-700">LOW</Badge>}
+                          </div>
+                          {item.description && <p className="text-[11px] text-muted-foreground">{item.description}</p>}
+                        </div>
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(item)}>
+                            <Edit2 className="h-3 w-3" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleDelete(item.id)}>
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1">
+                          <Progress value={pct} className="h-2" />
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <span className="text-sm font-bold">{available}</span>
+                          <span className="text-xs text-muted-foreground">/{item.total_quantity} {item.unit}</span>
+                        </div>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground mt-1">Issued: {item.issued_quantity || 0}</p>
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+  )
+}
+
+// -- ISSUE STOCK TAB --
+function IssueStockTab({ session, stockItems }) {
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedVolunteer, setSelectedVolunteer] = useState(null)
+  const [selectedItem, setSelectedItem] = useState('')
+  const [quantity, setQuantity] = useState(1)
+  const [notes, setNotes] = useState('')
+  const [issuing, setIssuing] = useState(false)
+  const queryClient = useQueryClient()
+
+  // Search volunteers
+  const { data: searchResults, isLoading: searching } = useQuery({
+    queryKey: ['search-volunteers', searchQuery],
+    queryFn: async () => {
+      const res = await fetch(`/api/admin/stock/search-volunteers?q=${encodeURIComponent(searchQuery)}`, {
+        headers: { 'Authorization': `Bearer ${session.access_token}` }
+      })
+      if (!res.ok) throw new Error('Search failed')
+      return res.json()
+    },
+    enabled: searchQuery.length >= 2
+  })
+
+  const handleIssue = async () => {
+    if (!selectedVolunteer || !selectedItem || quantity < 1) {
+      toast.error('Please fill all fields')
+      return
     }
-  }, [stopScanner, lookupVolunteer])
-
-  useEffect(() => {
-    return () => { stopScanner() }
-  }, [stopScanner])
-
-  const handleIssueKit = async () => {
     setIssuing(true)
     try {
-      const res = await fetch('/api/admin/inventory/issue', {
+      const res = await fetch('/api/admin/stock/issue', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Authorization': `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          target_user_id: scanResult,
-          item_type: 'Kit',
-          year: 2026
+          target_user_id: selectedVolunteer.user_id,
+          stock_item_id: selectedItem,
+          quantity,
+          notes,
+          year: new Date().getFullYear()
         })
       })
 
       if (res.ok) {
-        toast.success('Kit issued successfully!')
-        setKitStatus('issued')
+        toast.success(`Issued to ${selectedVolunteer.full_name}!`)
+        queryClient.invalidateQueries({ queryKey: ['stock-items'] })
+        queryClient.invalidateQueries({ queryKey: ['stock-history'] })
+        setSelectedVolunteer(null)
+        setSelectedItem('')
+        setQuantity(1)
+        setNotes('')
+        setSearchQuery('')
       } else {
         const data = await res.json()
-        if (data.alreadyIssued) {
-          toast.error('Kit already issued!')
-          setKitStatus('issued')
-        } else {
-          toast.error(data.error || 'Failed to issue kit')
-        }
+        toast.error(data.error || 'Failed to issue')
       }
-    } catch (err) {
-      toast.error('Network error')
-    }
+    } catch { toast.error('Network error') }
     setIssuing(false)
   }
 
-  const reset = () => {
-    stopScanner()
-    setScanResult(null)
-    setVolunteerInfo(null)
-    setKitStatus(null)
-    setManualId('')
-    setMode('idle')
-  }
-
-  const handleManualLookup = (e) => {
-    e.preventDefault()
-    if (manualId.trim()) {
-      lookupVolunteer(manualId.trim())
-    }
-  }
+  const selectedStockItem = stockItems.find(i => i.id === selectedItem)
+  const available = selectedStockItem ? selectedStockItem.total_quantity - (selectedStockItem.issued_quantity || 0) : 0
 
   return (
-    <div className="p-4">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h2 className="text-lg font-bold">Kit Scanner</h2>
-          <p className="text-xs text-muted-foreground">Scan volunteer QR to check/issue kits</p>
-        </div>
-        {mode !== 'idle' && (
-          <Button variant="outline" size="sm" onClick={reset} className="gap-1.5">
-            <ArrowLeft className="h-3.5 w-3.5" />
-            Reset
-          </Button>
-        )}
-      </div>
-
-      {/* Idle State */}
-      {mode === 'idle' && (
-        <div className="space-y-3">
-          <Card className="cursor-pointer hover:border-primary/50 transition-colors" onClick={startScanning}>
-            <CardContent className="p-6 flex flex-col items-center text-center space-y-3">
-              <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center">
-                <Camera className="h-8 w-8 text-primary" />
+    <div className="space-y-4">
+      {/* Step 1: Select Volunteer */}
+      <Card>
+        <CardContent className="p-4">
+          <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
+            <div className="w-5 h-5 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-[10px] font-bold">1</div>
+            Select Volunteer
+          </h3>
+          {selectedVolunteer ? (
+            <div className="flex items-center justify-between bg-muted/50 p-2.5 rounded-lg">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                  <User className="h-4 w-4 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium">{selectedVolunteer.full_name}</p>
+                  {selectedVolunteer.ya_id && <p className="text-[10px] text-muted-foreground">{selectedVolunteer.ya_id}</p>}
+                </div>
               </div>
-              <div>
-                <h3 className="font-semibold">Scan QR Code</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">Use camera to scan volunteer QR</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => setMode('manual')}>
-            <CardContent className="p-6 flex flex-col items-center text-center space-y-3">
-              <div className="w-16 h-16 bg-secondary rounded-2xl flex items-center justify-center">
-                <KeyboardIcon className="h-8 w-8 text-secondary-foreground" />
-              </div>
-              <div>
-                <h3 className="font-semibold">Enter ID Manually</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">Type volunteer ID if QR not available</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Scanning State */}
-      {mode === 'scanning' && (
-        <Card>
-          <CardContent className="p-4">
-            <div id="qr-reader" className="rounded-xl overflow-hidden" />
-            <p className="text-xs text-muted-foreground text-center mt-3">
-              Point camera at volunteer QR code
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Manual Entry */}
-      {mode === 'manual' && (
-        <Card>
-          <CardContent className="p-4">
-            <form onSubmit={handleManualLookup} className="space-y-3">
-              <div className="space-y-1.5">
-                <Label>Volunteer User ID</Label>
+              <Button variant="ghost" size="sm" onClick={() => { setSelectedVolunteer(null); setSearchQuery('') }}>
+                Change
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  value={manualId}
-                  onChange={(e) => setManualId(e.target.value)}
-                  placeholder="Enter UUID..."
-                  autoFocus
-                  className="font-mono text-sm"
+                  placeholder="Search by name or YA ID..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 h-9"
                 />
               </div>
-              <Button type="submit" className="w-full" disabled={!manualId.trim() || loading}>
-                {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Search className="h-4 w-4 mr-2" />}
-                Lookup Volunteer
-              </Button>
-            </form>
+              {searching && <div className="flex items-center justify-center p-3"><Loader2 className="h-4 w-4 animate-spin" /></div>}
+              {searchResults?.data?.length > 0 && (
+                <div className="border rounded-lg divide-y max-h-48 overflow-y-auto">
+                  {searchResults.data.map(vol => (
+                    <button
+                      key={vol.user_id}
+                      onClick={() => { setSelectedVolunteer(vol); setSearchQuery('') }}
+                      className="w-full text-left p-2.5 hover:bg-muted/50 transition-colors flex items-center gap-2"
+                    >
+                      <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium">{vol.full_name}</p>
+                        <p className="text-[10px] text-muted-foreground">{vol.ya_id || vol.role}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Step 2: Select Item & Quantity */}
+      <Card>
+        <CardContent className="p-4">
+          <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
+            <div className="w-5 h-5 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-[10px] font-bold">2</div>
+            Select Item & Quantity
+          </h3>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label className="text-xs">Stock Item</Label>
+              <select
+                value={selectedItem}
+                onChange={(e) => setSelectedItem(e.target.value)}
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              >
+                <option value="">Select an item...</option>
+                {stockItems.map(item => {
+                  const avail = item.total_quantity - (item.issued_quantity || 0)
+                  return (
+                    <option key={item.id} value={item.id} disabled={avail <= 0}>
+                      {item.name} ({avail} available)
+                    </option>
+                  )
+                })}
+              </select>
+            </div>
+
+            {selectedStockItem && (
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-muted-foreground">Available:</span>
+                <span className={`font-bold ${available <= 0 ? 'text-destructive' : 'text-green-600'}`}>
+                  {available} {selectedStockItem.unit}
+                </span>
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs">Quantity</Label>
+                <div className="flex items-center gap-1">
+                  <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => setQuantity(q => Math.max(1, q - 1))}>
+                    <Minus className="h-3 w-3" />
+                  </Button>
+                  <Input
+                    type="number"
+                    value={quantity}
+                    onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                    className="h-9 text-center"
+                    min={1}
+                    max={available}
+                  />
+                  <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => setQuantity(q => Math.min(available, q + 1))}>
+                    <Plus className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Notes (optional)</Label>
+                <Input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Any notes..." className="h-9" />
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Issue Button */}
+      <Button
+        onClick={handleIssue}
+        disabled={!selectedVolunteer || !selectedItem || quantity < 1 || available < quantity || issuing}
+        className="w-full h-12 text-base font-semibold gap-2"
+      >
+        {issuing ? (
+          <Loader2 className="h-5 w-5 animate-spin" />
+        ) : (
+          <Send className="h-5 w-5" />
+        )}
+        Issue Stock
+      </Button>
+    </div>
+  )
+}
+
+// -- ISSUANCE HISTORY TAB --
+function IssuanceHistoryTab({ session }) {
+  const [page, setPage] = useState(0)
+  const [search, setSearch] = useState('')
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['stock-history', page, search],
+    queryFn: async () => {
+      const params = new URLSearchParams({ page: page.toString(), pageSize: '30', search })
+      const res = await fetch(`/api/admin/stock/history?${params}`, {
+        headers: { 'Authorization': `Bearer ${session.access_token}` }
+      })
+      if (!res.ok) throw new Error('Failed')
+      return res.json()
+    },
+    enabled: !!session
+  })
+
+  const totalPages = data ? Math.ceil(data.total / 30) : 0
+
+  return (
+    <div className="space-y-3">
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input placeholder="Search by item name..." value={search} onChange={e => { setSearch(e.target.value); setPage(0) }} className="pl-10 h-9" />
+      </div>
+
+      {isLoading ? (
+        Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-16 w-full" />)
+      ) : !data?.data?.length ? (
+        <Card>
+          <CardContent className="py-8 text-center">
+            <History className="h-10 w-10 text-muted-foreground/30 mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground">No issuance records yet</p>
           </CardContent>
         </Card>
+      ) : (
+        data.data.map(log => (
+          <Card key={log.id}>
+            <CardContent className="p-3">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm font-medium">{log.item_name || log.stock_items?.name || 'Unknown Item'}</p>
+                  <p className="text-xs text-muted-foreground">
+                    To: <strong>{log.profiles_core?.full_name || 'Unknown'}</strong>
+                    {log.profiles_core?.ya_id && <span className="ml-1 opacity-60">({log.profiles_core.ya_id})</span>}
+                  </p>
+                  {log.notes && <p className="text-[10px] text-muted-foreground mt-0.5">{log.notes}</p>}
+                </div>
+                <div className="text-right">
+                  <Badge variant="secondary" className="text-[10px]">x{log.quantity}</Badge>
+                  <p className="text-[10px] text-muted-foreground mt-1">
+                    {new Date(log.issued_at).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))
       )}
 
-      {/* Result State */}
-      {mode === 'result' && (
-        <div className="space-y-3">
-          {loading ? (
-            <Card>
-              <CardContent className="p-6 space-y-3">
-                <Skeleton className="h-6 w-48" />
-                <Skeleton className="h-4 w-32" />
-                <Skeleton className="h-20 w-full" />
-              </CardContent>
-            </Card>
-          ) : volunteerInfo ? (
-            <>
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                      <User className="h-6 w-6 text-primary" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-base truncate">{volunteerInfo.full_name || 'Unknown'}</h3>
-                      <div className="flex flex-wrap gap-2 mt-1">
-                        {volunteerInfo.phone && (
-                          <span className="text-xs text-muted-foreground flex items-center gap-1">
-                            <Phone className="h-3 w-3" />{volunteerInfo.phone}
-                          </span>
-                        )}
-                        {volunteerInfo.city && (
-                          <span className="text-xs text-muted-foreground flex items-center gap-1">
-                            <MapPin className="h-3 w-3" />{volunteerInfo.city}
-                          </span>
-                        )}
-                      </div>
-                      <Badge variant="secondary" className="mt-2 text-[10px]">{volunteerInfo.role}</Badge>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Kit Status Card */}
-              <Card className={`border-2 ${kitStatus === 'issued' ? 'border-red-200 bg-red-50' : 'border-green-200 bg-green-50'}`}>
-                <CardContent className="p-6 text-center">
-                  {kitStatus === 'issued' ? (
-                    <div className="space-y-3">
-                      <XCircle className="h-16 w-16 text-red-500 mx-auto" />
-                      <h3 className="text-xl font-bold text-red-700">ALREADY ISSUED</h3>
-                      <p className="text-sm text-red-600">Kit for 2026 has been issued to this volunteer.</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <CheckCircle2 className="h-16 w-16 text-green-500 mx-auto" />
-                      <h3 className="text-xl font-bold text-green-700">READY TO ISSUE</h3>
-                      <p className="text-sm text-green-600">No kit issued for 2026 yet.</p>
-                      <Button
-                        onClick={handleIssueKit}
-                        disabled={issuing}
-                        size="lg"
-                        className="w-full bg-green-600 hover:bg-green-700 text-white font-bold text-lg h-14"
-                      >
-                        {issuing ? (
-                          <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                        ) : (
-                          <Package className="h-5 w-5 mr-2" />
-                        )}
-                        ISSUE KIT
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </>
-          ) : (
-            <Card>
-              <CardContent className="p-6 text-center">
-                <AlertTriangle className="h-12 w-12 text-amber-500 mx-auto mb-3" />
-                <h3 className="font-semibold text-base mb-1">Volunteer Not Found</h3>
-                <p className="text-sm text-muted-foreground">
-                  No volunteer found with this ID. Please verify the QR code.
-                </p>
-                <p className="text-xs text-muted-foreground mt-2 font-mono">{scanResult}</p>
-              </CardContent>
-            </Card>
-          )}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(p => p - 1)}>Prev</Button>
+          <span className="text-xs text-muted-foreground">Page {page + 1}/{totalPages}</span>
+          <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}>Next</Button>
         </div>
       )}
     </div>
@@ -681,78 +740,49 @@ function ScannerView({ user, session }) {
 }
 
 // ============================================================
-// ADMIN VOLUNTEER LIST VIEW
+// VOLUNTEER LIST VIEW (Admin)
 // ============================================================
 function VolunteerListView({ session, onSelectVolunteer }) {
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(0)
-  const pageSize = 20
 
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['volunteers', search, page],
     queryFn: async () => {
-      const params = new URLSearchParams({
-        search,
-        page: page.toString(),
-        pageSize: pageSize.toString()
-      })
+      const params = new URLSearchParams({ search, page: page.toString(), pageSize: '20' })
       const res = await fetch(`/api/admin/volunteers?${params}`, {
         headers: { 'Authorization': `Bearer ${session.access_token}` }
       })
-      if (!res.ok) throw new Error('Failed to fetch volunteers')
+      if (!res.ok) throw new Error('Failed')
       return res.json()
     },
     enabled: !!session
   })
 
-  const totalPages = data ? Math.ceil(data.total / pageSize) : 0
+  const totalPages = data ? Math.ceil(data.total / 20) : 0
 
   return (
     <div className="p-4">
       <div className="mb-4">
         <h2 className="text-lg font-bold">Volunteers</h2>
-        <p className="text-xs text-muted-foreground">{data?.total || 0} total volunteers</p>
+        <p className="text-xs text-muted-foreground">{data?.total || 0} total</p>
       </div>
 
       <div className="relative mb-4">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search by name..."
-          value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(0) }}
-          className="pl-10 h-10"
-        />
+        <Input placeholder="Search by name or YA ID..." value={search} onChange={e => { setSearch(e.target.value); setPage(0) }} className="pl-10 h-10" />
       </div>
 
       <div className="space-y-2">
         {isLoading ? (
           Array.from({ length: 5 }).map((_, i) => (
-            <Card key={i}>
-              <CardContent className="p-3">
-                <div className="flex items-center gap-3">
-                  <Skeleton className="w-10 h-10 rounded-full" />
-                  <div className="flex-1 space-y-1.5">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-3 w-24" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <Card key={i}><CardContent className="p-3"><div className="flex items-center gap-3"><Skeleton className="w-10 h-10 rounded-full" /><div className="flex-1 space-y-1.5"><Skeleton className="h-4 w-32" /><Skeleton className="h-3 w-24" /></div></div></CardContent></Card>
           ))
-        ) : data?.data?.length === 0 ? (
-          <Card>
-            <CardContent className="p-8 text-center text-muted-foreground">
-              <Users className="h-10 w-10 mx-auto mb-2 opacity-40" />
-              <p className="text-sm">No volunteers found</p>
-            </CardContent>
-          </Card>
+        ) : !data?.data?.length ? (
+          <Card><CardContent className="p-8 text-center text-muted-foreground"><Users className="h-10 w-10 mx-auto mb-2 opacity-40" /><p className="text-sm">No volunteers found</p></CardContent></Card>
         ) : (
-          data?.data?.map(vol => (
-            <Card
-              key={vol.user_id}
-              className="cursor-pointer hover:border-primary/30 transition-colors"
-              onClick={() => onSelectVolunteer(vol.user_id)}
-            >
+          data.data.map(vol => (
+            <Card key={vol.user_id} className="cursor-pointer hover:border-primary/30 transition-colors" onClick={() => onSelectVolunteer(vol.user_id)}>
               <CardContent className="p-3">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
@@ -761,18 +791,13 @@ function VolunteerListView({ session, onSelectVolunteer }) {
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm truncate">{vol.full_name || 'Unnamed'}</p>
                     <div className="flex items-center gap-2 mt-0.5">
-                      {vol.profiles_data?.phone && (
-                        <span className="text-xs text-muted-foreground">{vol.profiles_data.phone}</span>
-                      )}
-                      {vol.profiles_data?.city && (
-                        <span className="text-xs text-muted-foreground">{vol.profiles_data.city}</span>
-                      )}
+                      {vol.ya_id && <span className="text-[10px] text-muted-foreground font-mono">{vol.ya_id}</span>}
+                      {vol.profiles_data?.contact_number && <span className="text-[10px] text-muted-foreground">{vol.profiles_data.contact_number}</span>}
+                      {vol.profiles_data?.sewa_center && <span className="text-[10px] text-muted-foreground">{vol.profiles_data.sewa_center}</span>}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant={vol.role === 'admin' ? 'default' : 'secondary'} className="text-[10px]">
-                      {vol.role}
-                    </Badge>
+                    <Badge variant={vol.role === 'admin' ? 'default' : 'secondary'} className="text-[10px]">{vol.role}</Badge>
                     <ChevronRight className="h-4 w-4 text-muted-foreground" />
                   </div>
                 </div>
@@ -782,28 +807,11 @@ function VolunteerListView({ session, onSelectVolunteer }) {
         )}
       </div>
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-4">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={page === 0}
-            onClick={() => setPage(p => p - 1)}
-          >
-            Previous
-          </Button>
-          <span className="text-xs text-muted-foreground">
-            Page {page + 1} of {totalPages}
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={page >= totalPages - 1}
-            onClick={() => setPage(p => p + 1)}
-          >
-            Next
-          </Button>
+          <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(p => p - 1)}>Previous</Button>
+          <span className="text-xs text-muted-foreground">Page {page + 1}/{totalPages}</span>
+          <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}>Next</Button>
         </div>
       )}
     </div>
@@ -811,7 +819,7 @@ function VolunteerListView({ session, onSelectVolunteer }) {
 }
 
 // ============================================================
-// VOLUNTEER DETAIL VIEW (Admin viewing a volunteer)
+// VOLUNTEER DETAIL VIEW (Admin)
 // ============================================================
 function VolunteerDetailView({ session, userId, onBack, currentUserId }) {
   const queryClient = useQueryClient()
@@ -826,68 +834,45 @@ function VolunteerDetailView({ session, userId, onBack, currentUserId }) {
       const res = await fetch(`/api/admin/volunteer/${userId}`, {
         headers: { 'Authorization': `Bearer ${session.access_token}` }
       })
-      if (!res.ok) throw new Error('Failed to fetch volunteer')
+      if (!res.ok) throw new Error('Failed')
       return res.json()
     },
-    enabled: !!userId && !!session
+    enabled: !!userId
   })
 
   useEffect(() => {
     if (volunteer) {
-      setFormData({
-        ...(volunteer.data || {}),
-        full_name: volunteer.core?.full_name || '',
-      })
+      setFormData({ ...(volunteer.data || {}), ya_id: volunteer.core?.ya_id || '', first_name: volunteer.core?.first_name || '', middle_name: volunteer.core?.middle_name || '', last_name: volunteer.core?.last_name || '', full_name: volunteer.core?.full_name || '' })
       setSensitiveData(volunteer.sensitive || {})
     }
   }, [volunteer])
 
-  const handleChange = useCallback((key, value) => {
-    setFormData(prev => ({ ...prev, [key]: value }))
-  }, [])
-
-  const handleSensitiveChange = useCallback((key, value) => {
-    setSensitiveData(prev => ({ ...prev, [key]: value }))
-  }, [])
+  const handleChange = useCallback((key, value) => setFormData(prev => ({ ...prev, [key]: value })), [])
+  const handleSensitiveChange = useCallback((key, value) => setSensitiveData(prev => ({ ...prev, [key]: value })), [])
 
   const handleSave = async () => {
     setSaving(true)
     try {
-      const { full_name, id, user_id, created_at, updated_at, ...dataFields } = formData
+      const { ya_id, first_name, middle_name, last_name, full_name, id, user_id, created_at, updated_at, ...dataFields } = formData
+      const computedFullName = [first_name, middle_name, last_name].filter(Boolean).join(' ') || full_name
 
-      // Update core
-      const { error: coreError } = await supabase
-        .from('profiles_core')
-        .update({ full_name, updated_at: new Date().toISOString() })
-        .eq('user_id', userId)
+      const adminSupabase = supabase
+      await Promise.all([
+        supabase.from('profiles_core').update({ ya_id, first_name, middle_name, last_name, full_name: computedFullName, updated_at: new Date().toISOString() }).eq('user_id', userId),
+        supabase.from('profiles_data').update({ ...dataFields, updated_at: new Date().toISOString() }).eq('user_id', userId),
+      ])
 
-      // Update data
-      const { error: dataError } = await supabase
-        .from('profiles_data')
-        .update({ ...dataFields, updated_at: new Date().toISOString() })
-        .eq('user_id', userId)
-
-      // Update sensitive via API (service role)
       const { id: sId, user_id: sUid, created_at: sCa, updated_at: sUa, ...sensitiveFields } = sensitiveData
       await fetch('/api/admin/sensitive/update', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Authorization': `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ target_user_id: userId, ...sensitiveFields })
       })
 
-      if (coreError || dataError) {
-        toast.error('Some fields failed to save')
-      } else {
-        toast.success('Profile updated!')
-        queryClient.invalidateQueries({ queryKey: ['volunteer-detail', userId] })
-        queryClient.invalidateQueries({ queryKey: ['volunteers'] })
-      }
-    } catch (err) {
-      toast.error('Save failed')
-    }
+      toast.success('Profile updated!')
+      queryClient.invalidateQueries({ queryKey: ['volunteer-detail', userId] })
+      queryClient.invalidateQueries({ queryKey: ['volunteers'] })
+    } catch { toast.error('Save failed') }
     setSaving(false)
   }
 
@@ -896,147 +881,115 @@ function VolunteerDetailView({ session, userId, onBack, currentUserId }) {
     try {
       const res = await fetch('/api/admin/set-role', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Authorization': `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ target_user_id: userId, role: newRole })
       })
-      if (res.ok) {
-        toast.success(`Role changed to ${newRole}`)
-        queryClient.invalidateQueries({ queryKey: ['volunteer-detail', userId] })
-        queryClient.invalidateQueries({ queryKey: ['volunteers'] })
-      } else {
-        toast.error('Failed to change role')
-      }
-    } catch (err) {
-      toast.error('Network error')
-    }
+      if (res.ok) { toast.success(`Role changed to ${newRole}`); queryClient.invalidateQueries({ queryKey: ['volunteer-detail', userId] }); queryClient.invalidateQueries({ queryKey: ['volunteers'] }) }
+      else toast.error('Failed to change role')
+    } catch { toast.error('Network error') }
     setChangingRole(false)
   }
 
-  if (isLoading) {
-    return (
-      <div className="p-4 space-y-4">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-64 w-full" />
-      </div>
-    )
-  }
+  if (isLoading) return <div className="p-4 space-y-4"><Skeleton className="h-8 w-48" /><Skeleton className="h-64 w-full" /></div>
 
   const sectionIcons = {
-    'Personal': <User className="h-4 w-4 text-blue-500" />,
-    'Contact': <Phone className="h-4 w-4 text-green-500" />,
-    'Address': <MapPin className="h-4 w-4 text-orange-500" />,
-    'Emergency': <Heart className="h-4 w-4 text-red-500" />,
-    'Sizing': <Package className="h-4 w-4 text-purple-500" />,
-    'Skills & Languages': <Briefcase className="h-4 w-4 text-indigo-500" />,
-    'Health': <Heart className="h-4 w-4 text-pink-500" />,
-    'Assignment': <MapPin className="h-4 w-4 text-teal-500" />,
-    'Travel': <MapPin className="h-4 w-4 text-cyan-500" />,
-    'Professional': <Briefcase className="h-4 w-4 text-amber-500" />,
-    'Other': <FileText className="h-4 w-4 text-gray-500" />,
-    'Documents': <FileText className="h-4 w-4 text-blue-500" />,
-    'Verification': <Shield className="h-4 w-4 text-green-500" />,
-    'Admin': <UserCog className="h-4 w-4 text-red-500" />,
-  }
-
-  const groupBySection = (fields) => {
-    const groups = {}
-    fields.forEach(f => {
-      if (!groups[f.section]) groups[f.section] = []
-      groups[f.section].push(f)
-    })
-    return groups
+    'Permanent Address': <MapPin className="h-3.5 w-3.5 text-orange-500" />,
+    'Communication Address': <MapPin className="h-3.5 w-3.5 text-blue-500" />,
+    'Center & Zone': <Shield className="h-3.5 w-3.5 text-teal-500" />,
+    'Initiation': <Heart className="h-3.5 w-3.5 text-red-500" />,
+    'Sewa Areas - Permanent': <MapPin className="h-3.5 w-3.5 text-green-500" />,
+    'Sewa Areas - Current': <MapPin className="h-3.5 w-3.5 text-cyan-500" />,
+    'Qualification': <FileText className="h-3.5 w-3.5 text-indigo-500" />,
+    'Profession': <Briefcase className="h-3.5 w-3.5 text-amber-500" />,
+    'I-Card & Uniform': <Package className="h-3.5 w-3.5 text-purple-500" />,
+    'Orientation': <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />,
+    'Status': <BarChart3 className="h-3.5 w-3.5 text-blue-500" />,
+    'Digital & Apps': <Phone className="h-3.5 w-3.5 text-pink-500" />,
+    'Preferences': <Heart className="h-3.5 w-3.5 text-rose-500" />,
+    'Data Metadata': <FileText className="h-3.5 w-3.5 text-gray-500" />,
+    'ID Proof': <FileText className="h-3.5 w-3.5 text-blue-500" />,
+    'Admin': <UserCog className="h-3.5 w-3.5 text-red-500" />,
   }
 
   return (
     <div className="p-4 pb-6">
-      <div className="flex items-center gap-2 mb-4">
-        <Button variant="ghost" size="sm" onClick={onBack} className="gap-1 -ml-2">
-          <ArrowLeft className="h-4 w-4" />
-          Back
-        </Button>
+      <div className="flex items-center gap-2 mb-3">
+        <Button variant="ghost" size="sm" onClick={onBack} className="gap-1 -ml-2"><ArrowLeft className="h-4 w-4" />Back</Button>
       </div>
 
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-lg font-bold">{formData.full_name || 'Volunteer'}</h2>
           <div className="flex items-center gap-2 mt-1">
-            <Badge variant={volunteer?.core?.role === 'admin' ? 'default' : 'secondary'}>
-              {volunteer?.core?.role}
-            </Badge>
+            <Badge variant={volunteer?.core?.role === 'admin' ? 'default' : 'secondary'}>{volunteer?.core?.role}</Badge>
+            {volunteer?.core?.ya_id && <Badge variant="outline" className="text-[10px] font-mono">{volunteer.core.ya_id}</Badge>}
             {volunteer?.core?.role !== 'admin' ? (
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-6 text-[10px] px-2"
-                onClick={() => handleRoleChange('admin')}
-                disabled={changingRole}
-              >
-                Promote to Admin
-              </Button>
+              <Button variant="outline" size="sm" className="h-6 text-[10px] px-2" onClick={() => handleRoleChange('admin')} disabled={changingRole}>Promote Admin</Button>
             ) : userId !== currentUserId ? (
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-6 text-[10px] px-2"
-                onClick={() => handleRoleChange('volunteer')}
-                disabled={changingRole}
-              >
-                Demote to Volunteer
-              </Button>
+              <Button variant="outline" size="sm" className="h-6 text-[10px] px-2" onClick={() => handleRoleChange('volunteer')} disabled={changingRole}>Demote</Button>
             ) : null}
           </div>
         </div>
         <Button onClick={handleSave} disabled={saving} size="sm" className="gap-1.5">
-          {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
-          Save
+          {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}Save
         </Button>
       </div>
 
-      <Tabs defaultValue="identity" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-4">
-          <TabsTrigger value="identity" className="text-xs">Identity</TabsTrigger>
-          <TabsTrigger value="logistics" className="text-xs">Logistics</TabsTrigger>
-          <TabsTrigger value="docs" className="text-xs">Docs</TabsTrigger>
-        </TabsList>
+      <Tabs defaultValue="personal">
+        <div className="overflow-x-auto -mx-4 px-4 pb-1">
+          <TabsList className="inline-flex w-auto min-w-full h-9">
+            {PROFILE_TABS.map(tab => (
+              <TabsTrigger key={tab.id} value={tab.id} className="text-[11px] px-2.5 whitespace-nowrap">{tab.label}</TabsTrigger>
+            ))}
+            <TabsTrigger value="sensitive" className="text-[11px] px-2.5 whitespace-nowrap">Sensitive</TabsTrigger>
+            <TabsTrigger value="issued" className="text-[11px] px-2.5 whitespace-nowrap">Issued Items</TabsTrigger>
+          </TabsList>
+        </div>
 
-        <TabsContent value="identity" className="mt-0">
-          <Card>
-            <CardContent className="pt-4 space-y-4">
-              {Object.entries(groupBySection(IDENTITY_FIELDS)).map(([section, fields]) => (
-                <FieldSection key={section} title={section} icon={sectionIcons[section]} fields={fields} formData={formData} onChange={handleChange} />
-              ))}
-            </CardContent>
-          </Card>
+        {PROFILE_TABS.map(tab => {
+          const sections = groupBySection(tab.fields)
+          const hasSections = Object.keys(sections).some(s => s !== 'General')
+          return (
+            <TabsContent key={tab.id} value={tab.id} className="mt-3">
+              <Card><CardContent className="pt-4 space-y-3 pb-4">
+                {hasSections ? Object.entries(sections).map(([section, fields]) => (
+                  <FieldGroup key={section} title={section} icon={sectionIcons[section]} fields={fields} formData={formData} onChange={handleChange} />
+                )) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {tab.fields.map(f => <FormField key={f.key} field={f} value={formData[f.key]} onChange={handleChange} />)}
+                  </div>
+                )}
+              </CardContent></Card>
+            </TabsContent>
+          )
+        })}
+
+        <TabsContent value="sensitive" className="mt-3">
+          <Card><CardContent className="pt-4 space-y-3 pb-4">
+            {Object.entries(groupBySection(SENSITIVE_FIELDS)).map(([section, fields]) => (
+              <FieldGroup key={section} title={section} icon={sectionIcons[section]} fields={fields} formData={sensitiveData} onChange={handleSensitiveChange} />
+            ))}
+          </CardContent></Card>
         </TabsContent>
 
-        <TabsContent value="logistics" className="mt-0">
-          <Card>
-            <CardContent className="pt-4 space-y-4">
-              {Object.entries(groupBySection(LOGISTICS_FIELDS)).map(([section, fields]) => (
-                <FieldSection key={section} title={section} icon={sectionIcons[section]} fields={fields} formData={formData} onChange={handleChange} />
-              ))}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="docs" className="mt-0">
-          <Card>
-            <CardContent className="pt-4 space-y-4">
-              {Object.entries(groupBySection(SENSITIVE_FIELDS)).map(([section, fields]) => (
-                <FieldSection
-                  key={section}
-                  title={section}
-                  icon={sectionIcons[section]}
-                  fields={fields}
-                  formData={sensitiveData}
-                  onChange={handleSensitiveChange}
-                />
-              ))}
-            </CardContent>
-          </Card>
+        <TabsContent value="issued" className="mt-3">
+          <Card><CardContent className="pt-4 pb-4">
+            {volunteer?.inventory?.length === 0 ? (
+              <p className="text-center text-sm text-muted-foreground py-6">No items issued yet</p>
+            ) : (
+              <div className="space-y-2">
+                {(volunteer?.inventory || []).map(log => (
+                  <div key={log.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
+                    <div>
+                      <p className="text-sm font-medium">{log.item_name || log.stock_items?.name || 'Item'}</p>
+                      <p className="text-[10px] text-muted-foreground">{new Date(log.created_at).toLocaleDateString()} {log.notes && `- ${log.notes}`}</p>
+                    </div>
+                    <Badge variant="secondary">x{log.quantity}</Badge>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent></Card>
         </TabsContent>
       </Tabs>
     </div>
@@ -1056,77 +1009,43 @@ function SetupView({ onRetry }) {
       const sql = await res.text()
       await navigator.clipboard.writeText(sql)
       setCopied(true)
-      toast.success('SQL copied to clipboard!')
+      toast.success('SQL copied!')
       setTimeout(() => setCopied(false), 3000)
-    } catch {
-      toast.error('Failed to copy. Open /supabase-setup.sql manually.')
-    }
+    } catch { toast.error('Failed to copy') }
   }
 
   return (
     <div className="p-4 max-w-lg mx-auto">
       <Card>
         <CardHeader className="text-center">
-          <div className="mx-auto w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center mb-2">
-            <AlertTriangle className="h-7 w-7 text-amber-600" />
-          </div>
+          <div className="mx-auto w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center mb-2"><AlertTriangle className="h-7 w-7 text-amber-600" /></div>
           <CardTitle>Database Setup Required</CardTitle>
           <CardDescription>Complete these steps to get started</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Step 1 */}
+        <CardContent className="space-y-5">
           <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-bold">1</div>
-              <h3 className="font-semibold text-sm">Run SQL Setup Script</h3>
-            </div>
-            <p className="text-xs text-muted-foreground ml-8">
-              Go to <strong>Supabase Dashboard &gt; SQL Editor</strong> and run the setup script.
-            </p>
-            <div className="ml-8">
-              <Button onClick={copySQL} variant="outline" size="sm" className="gap-1.5">
-                {copied ? <CheckCircle2 className="h-3.5 w-3.5" /> : <FileText className="h-3.5 w-3.5" />}
-                {copied ? 'Copied!' : 'Copy SQL Script'}
-              </Button>
-            </div>
+            <div className="flex items-center gap-2"><div className="w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-bold">1</div><h3 className="font-semibold text-sm">Run SQL Setup Script</h3></div>
+            <p className="text-xs text-muted-foreground ml-8">Go to <strong>Supabase Dashboard &gt; SQL Editor</strong> and run the setup script.</p>
+            <div className="ml-8"><Button onClick={copySQL} variant="outline" size="sm" className="gap-1.5">{copied ? <CheckCircle2 className="h-3.5 w-3.5" /> : <FileText className="h-3.5 w-3.5" />}{copied ? 'Copied!' : 'Copy SQL Script'}</Button></div>
           </div>
-
           <Separator />
-
-          {/* Step 2 */}
           <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-bold">2</div>
-              <h3 className="font-semibold text-sm">Configure Auth Redirect URLs</h3>
-            </div>
+            <div className="flex items-center gap-2"><div className="w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-bold">2</div><h3 className="font-semibold text-sm">Configure Auth Redirect URLs</h3></div>
             <div className="text-xs text-muted-foreground ml-8 space-y-1">
-              <p>Go to <strong>Supabase Dashboard &gt; Authentication &gt; URL Configuration</strong></p>
-              <p>Set <strong>Site URL</strong> to:</p>
+              <p>Go to <strong>Authentication &gt; URL Configuration</strong></p>
+              <p>Set <strong>Site URL</strong>:</p>
               <code className="block bg-muted p-2 rounded text-[11px] font-mono break-all">{siteUrl}</code>
               <p>Add to <strong>Redirect URLs</strong>:</p>
               <code className="block bg-muted p-2 rounded text-[11px] font-mono break-all">{siteUrl}/auth/callback</code>
             </div>
           </div>
-
           <Separator />
-
-          {/* Step 3 */}
           <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-bold">3</div>
-              <h3 className="font-semibold text-sm">Set First Admin</h3>
-            </div>
-            <p className="text-xs text-muted-foreground ml-8">
-              After signing up, run this SQL to make yourself admin:
-            </p>
-            <code className="block bg-muted p-2 rounded text-[10px] font-mono ml-8 break-all">
-              UPDATE profiles_core SET role = 'admin' WHERE full_name LIKE '%your_email%';
-            </code>
+            <div className="flex items-center gap-2"><div className="w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-bold">3</div><h3 className="font-semibold text-sm">Set First Admin</h3></div>
+            <p className="text-xs text-muted-foreground ml-8">After signing up, run in SQL Editor:</p>
+            <code className="block bg-muted p-2 rounded text-[10px] font-mono ml-8 break-all">UPDATE profiles_core SET role = 'admin' WHERE user_id = 'YOUR_USER_ID_HERE';</code>
           </div>
-
-          <Button onClick={onRetry} className="w-full mt-4">
-            I've completed the setup — Retry
-          </Button>
+          <Button onClick={onRetry} className="w-full mt-4">I've completed the setup — Retry</Button>
         </CardContent>
       </Card>
     </div>
@@ -1151,56 +1070,30 @@ function App() {
 
   const isAdmin = userRole === 'admin'
 
-  // Auth check
   useEffect(() => {
     const init = async () => {
-      const { data: { session: currentSession } } = await supabase.auth.getSession()
-      if (!currentSession) {
-        router.push('/')
-        return
-      }
-      setUser(currentSession.user)
-      setSession(currentSession)
+      const { data: { session: s } } = await supabase.auth.getSession()
+      if (!s) { router.push('/'); return }
+      setUser(s.user)
+      setSession(s)
 
-      // Check if profile exists
       const { data: profile, error } = await supabase
         .from('profiles_core')
         .select('role, full_name')
-        .eq('user_id', currentSession.user.id)
+        .eq('user_id', s.user.id)
         .single()
 
       if (error) {
-        console.error('Profile check error:', error)
-        if (error.message?.includes('does not exist') || error.code === '42P01' || error.code === 'PGRST116') {
-          // Try to ensure profile via API
-          try {
-            const ensureRes = await fetch('/api/profile/ensure', {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${currentSession.access_token}`,
-                'Content-Type': 'application/json'
-              }
-            })
-            if (ensureRes.ok) {
-              // Retry profile fetch
-              const { data: retryProfile, error: retryError } = await supabase
-                .from('profiles_core')
-                .select('role, full_name')
-                .eq('user_id', currentSession.user.id)
-                .single()
-              if (retryProfile) {
-                setUserRole(retryProfile.role)
-                setLoading(false)
-                return
-              }
-            }
-          } catch (e) {
-            console.error('Profile ensure failed:', e)
+        try {
+          const ensureRes = await fetch('/api/profile/ensure', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${s.access_token}`, 'Content-Type': 'application/json' }
+          })
+          if (ensureRes.ok) {
+            const { data: retryProfile } = await supabase.from('profiles_core').select('role').eq('user_id', s.user.id).single()
+            if (retryProfile) { setUserRole(retryProfile.role); setLoading(false); return }
           }
-          setNeedsSetup(true)
-          setLoading(false)
-          return
-        }
+        } catch (e) { console.error(e) }
         setNeedsSetup(true)
         setLoading(false)
         return
@@ -1213,19 +1106,12 @@ function App() {
     init()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
-      if (event === 'SIGNED_OUT' || !newSession) {
-        router.push('/')
-      }
-      if (newSession) {
-        setSession(newSession)
-        setUser(newSession.user)
-      }
+      if (event === 'SIGNED_OUT' || !newSession) router.push('/')
+      if (newSession) { setSession(newSession); setUser(newSession.user) }
     })
-
     return () => subscription.unsubscribe()
   }, [router])
 
-  // Fetch own profile data using React Query
   const { data: profileData, isLoading: profileLoading } = useQuery({
     queryKey: ['my-profile', user?.id],
     queryFn: async () => {
@@ -1238,11 +1124,14 @@ function App() {
     enabled: !!user?.id && !needsSetup && !loading
   })
 
-  // Populate form data when profile loads
   useEffect(() => {
     if (profileData && currentView === 'profile' && !selectedVolunteer) {
       setFormData({
         ...(profileData.data || {}),
+        ya_id: profileData.core?.ya_id || '',
+        first_name: profileData.core?.first_name || '',
+        middle_name: profileData.core?.middle_name || '',
+        last_name: profileData.core?.last_name || '',
         full_name: profileData.core?.full_name || '',
       })
     }
@@ -1251,93 +1140,43 @@ function App() {
   const handleSave = async () => {
     setSaving(true)
     try {
-      const { full_name, id, user_id, created_at, updated_at, ...dataFields } = formData
+      const { ya_id, first_name, middle_name, last_name, full_name, id, user_id, created_at, updated_at, ...dataFields } = formData
+      const computedFullName = [first_name, middle_name, last_name].filter(Boolean).join(' ') || full_name
 
-      const [coreResult, dataResult] = await Promise.all([
-        supabase
-          .from('profiles_core')
-          .update({ full_name, updated_at: new Date().toISOString() })
-          .eq('user_id', user.id),
-        supabase
-          .from('profiles_data')
-          .update({ ...dataFields, updated_at: new Date().toISOString() })
-          .eq('user_id', user.id)
+      await Promise.all([
+        supabase.from('profiles_core').update({ ya_id, first_name, middle_name, last_name, full_name: computedFullName, updated_at: new Date().toISOString() }).eq('user_id', user.id),
+        supabase.from('profiles_data').update({ ...dataFields, updated_at: new Date().toISOString() }).eq('user_id', user.id)
       ])
 
-      if (coreResult.error || dataResult.error) {
-        toast.error('Some fields failed to save')
-        console.error(coreResult.error, dataResult.error)
-      } else {
-        toast.success('Profile saved!')
-        queryClient.invalidateQueries({ queryKey: ['my-profile'] })
-      }
-    } catch (err) {
-      toast.error('Failed to save profile')
-      console.error(err)
-    }
+      toast.success('Profile saved!')
+      queryClient.invalidateQueries({ queryKey: ['my-profile'] })
+    } catch { toast.error('Failed to save') }
     setSaving(false)
   }
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.push('/')
-  }
+  const handleLogout = async () => { await supabase.auth.signOut(); router.push('/') }
 
   const handleRetrySetup = async () => {
-    setNeedsSetup(false)
-    setLoading(true)
-    const { data: { session: currentSession } } = await supabase.auth.getSession()
-    if (currentSession) {
-      const { data: profile } = await supabase
-        .from('profiles_core')
-        .select('role')
-        .eq('user_id', currentSession.user.id)
-        .single()
-      if (profile) {
-        setUserRole(profile.role)
-        setNeedsSetup(false)
-      } else {
-        // Try ensure again
-        await fetch('/api/profile/ensure', {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${currentSession.access_token}` }
-        })
-        const { data: retryProfile } = await supabase
-          .from('profiles_core')
-          .select('role')
-          .eq('user_id', currentSession.user.id)
-          .single()
-        if (retryProfile) {
-          setUserRole(retryProfile.role)
-          setNeedsSetup(false)
-        } else {
-          setNeedsSetup(true)
-        }
-      }
+    setNeedsSetup(false); setLoading(true)
+    const { data: { session: s } } = await supabase.auth.getSession()
+    if (s) {
+      await fetch('/api/profile/ensure', { method: 'POST', headers: { 'Authorization': `Bearer ${s.access_token}` } })
+      const { data: p } = await supabase.from('profiles_core').select('role').eq('user_id', s.user.id).single()
+      if (p) { setUserRole(p.role); setNeedsSetup(false) } else setNeedsSetup(true)
     }
     setLoading(false)
   }
 
-  // Loading state
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center space-y-3">
-          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
-          <p className="text-sm text-muted-foreground">Loading dashboard...</p>
-        </div>
-      </div>
-    )
-  }
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="text-center space-y-3"><Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" /><p className="text-sm text-muted-foreground">Loading...</p></div>
+    </div>
+  )
 
-  // Setup required
-  if (needsSetup) {
-    return <SetupView onRetry={handleRetrySetup} />
-  }
+  if (needsSetup) return <SetupView onRetry={handleRetrySetup} />
 
   return (
     <div className="min-h-screen flex flex-col max-w-2xl mx-auto">
-      {/* Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b px-4 py-2.5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -1346,90 +1185,39 @@ function App() {
             </div>
             <div>
               <h1 className="text-sm font-bold leading-none">YA Core</h1>
-              <p className="text-[10px] text-muted-foreground leading-none mt-0.5">
-                {profileData?.core?.full_name || user?.email}
-              </p>
+              <p className="text-[10px] text-muted-foreground leading-none mt-0.5">{profileData?.core?.full_name || user?.email}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant={isAdmin ? 'default' : 'secondary'} className="text-[10px]">
-              {userRole}
-            </Badge>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleLogout}>
-              <LogOut className="h-4 w-4" />
-            </Button>
+            <Badge variant={isAdmin ? 'default' : 'secondary'} className="text-[10px]">{userRole}</Badge>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleLogout}><LogOut className="h-4 w-4" /></Button>
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="flex-1 overflow-y-auto pb-20">
         {selectedVolunteer ? (
-          <VolunteerDetailView
-            session={session}
-            userId={selectedVolunteer}
-            onBack={() => { setSelectedVolunteer(null); setCurrentView('volunteers') }}
-            currentUserId={user?.id}
-          />
+          <VolunteerDetailView session={session} userId={selectedVolunteer} onBack={() => { setSelectedVolunteer(null); setCurrentView('volunteers') }} currentUserId={user?.id} />
         ) : currentView === 'profile' ? (
-          profileLoading ? (
-            <div className="p-4 space-y-4">
-              <Skeleton className="h-8 w-48" />
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-64 w-full" />
-            </div>
-          ) : (
-            <ProfileView
-              user={user}
-              userRole={userRole}
-              formData={formData}
-              setFormData={setFormData}
-              onSave={handleSave}
-              saving={saving}
-              isAdmin={isAdmin}
-            />
-          )
+          profileLoading ? <div className="p-4 space-y-4"><Skeleton className="h-8 w-48" /><Skeleton className="h-12 w-full" /><Skeleton className="h-64 w-full" /></div>
+          : <ProfileView user={user} userRole={userRole} formData={formData} setFormData={setFormData} onSave={handleSave} saving={saving} isAdmin={isAdmin} />
         ) : currentView === 'qrcode' ? (
-          <QRCodeView user={user} userName={profileData?.core?.full_name} />
-        ) : currentView === 'scanner' && isAdmin ? (
-          <ScannerView user={user} session={session} />
+          <QRCodeView user={user} coreData={profileData?.core} />
+        ) : currentView === 'stock' && isAdmin ? (
+          <StockManagementView session={session} />
         ) : currentView === 'volunteers' && isAdmin ? (
-          <VolunteerListView
-            session={session}
-            onSelectVolunteer={(id) => { setSelectedVolunteer(id); setCurrentView('volunteers') }}
-          />
+          <VolunteerListView session={session} onSelectVolunteer={(id) => { setSelectedVolunteer(id); setCurrentView('volunteers') }} />
         ) : null}
       </main>
 
-      {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t z-50">
         <div className="max-w-2xl mx-auto flex justify-around py-1.5 px-2">
-          <NavItem
-            icon={<User className="h-5 w-5" />}
-            label="Profile"
-            active={currentView === 'profile' && !selectedVolunteer}
-            onClick={() => { setCurrentView('profile'); setSelectedVolunteer(null) }}
-          />
-          <NavItem
-            icon={<QrCode className="h-5 w-5" />}
-            label="My QR"
-            active={currentView === 'qrcode'}
-            onClick={() => { setCurrentView('qrcode'); setSelectedVolunteer(null) }}
-          />
+          <NavItem icon={<User className="h-5 w-5" />} label="Profile" active={currentView === 'profile' && !selectedVolunteer} onClick={() => { setCurrentView('profile'); setSelectedVolunteer(null) }} />
+          <NavItem icon={<QrCode className="h-5 w-5" />} label="My QR" active={currentView === 'qrcode'} onClick={() => { setCurrentView('qrcode'); setSelectedVolunteer(null) }} />
           {isAdmin && (
             <>
-              <NavItem
-                icon={<ScanLine className="h-5 w-5" />}
-                label="Scanner"
-                active={currentView === 'scanner'}
-                onClick={() => { setCurrentView('scanner'); setSelectedVolunteer(null) }}
-              />
-              <NavItem
-                icon={<Users className="h-5 w-5" />}
-                label="Volunteers"
-                active={currentView === 'volunteers' || !!selectedVolunteer}
-                onClick={() => { setCurrentView('volunteers'); setSelectedVolunteer(null) }}
-              />
+              <NavItem icon={<Package className="h-5 w-5" />} label="Stock" active={currentView === 'stock'} onClick={() => { setCurrentView('stock'); setSelectedVolunteer(null) }} />
+              <NavItem icon={<Users className="h-5 w-5" />} label="Volunteers" active={currentView === 'volunteers' || !!selectedVolunteer} onClick={() => { setCurrentView('volunteers'); setSelectedVolunteer(null) }} />
             </>
           )}
         </div>
