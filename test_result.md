@@ -122,15 +122,18 @@ backend:
 
   - task: "Profile ensure API"
     implemented: true
-    working: "NA"
+    working: true
     file: "app/api/[[...path]]/route.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "POST /api/profile/ensure - creates profile via service role. Returns 401 without auth token."
+        - working: true
+          agent: "testing"
+          comment: "✅ VERIFIED: Auth guard working correctly - returns 401 'Unauthorized' without auth token"
 
   - task: "Admin set role API"
     implemented: true
