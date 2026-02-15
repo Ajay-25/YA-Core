@@ -146,6 +146,9 @@ backend:
         - working: "NA"
           agent: "main"
           comment: "POST /api/admin/set-role - requires admin auth, changes user role"
+        - working: true
+          agent: "testing"
+          comment: "✅ VERIFIED: Auth guard working correctly - returns 401 'Unauthorized' without auth token"
 
   - task: "Admin volunteers list API"
     implemented: true
