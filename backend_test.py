@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 
-import asyncio
-import aiohttp
 import json
 import os
+import requests
 from typing import Dict, Any
 
 # Base URL from environment
@@ -12,7 +11,6 @@ BASE_URL = "https://vrp-admin.preview.emergentagent.com"
 class YACoreVRPAPITester:
     def __init__(self):
         self.base_url = BASE_URL
-        self.session = None
         self.results = {
             "health_check": [],
             "auth_guards": [],
@@ -20,14 +18,6 @@ class YACoreVRPAPITester:
             "not_found": [],
             "summary": {"total": 0, "passed": 0, "failed": 0}
         }
-
-    async def create_session(self):
-        connector = aiohttp.TCPConnector(ssl=False)
-        self.session = aiohttp.ClientSession(connector=connector)
-
-    async def close_session(self):
-        if self.session:
-            await self.session.close()
 
     def add_result(self, category: str, test_name: str, expected: str, actual: str, passed: bool, response_data: Dict[Any, Any] = None):
         result = {
