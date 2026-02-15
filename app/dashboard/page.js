@@ -1077,29 +1077,35 @@ function App() {
       setUser(s.user)
       setSession(s)
 
-      const { data: profile, error } = await supabase
-        .from('profiles_core')
-        .select('role, full_name')
-        .eq('user_id', s.user.id)
-        .single()
-
-      if (error) {
-        try {
-          const ensureRes = await fetch('/api/profile/ensure', {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${s.access_token}`, 'Content-Type': 'application/json' }
-          })
-          if (ensureRes.ok) {
-            const { data: retryProfile } = await supabase.from('profiles_core').select('role').eq('user_id', s.user.id).single()
-            if (retryProfile) { setUserRole(retryProfile.role); setLoading(false); return }
+      // Use API endpoint (service role) to bypass RLS issues
+      try {
+        const ensureRes = await fetch('/api/profile/ensure', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${s.access_token}`, 'Content-Type': 'application/json' }
+        })
+        if (ensureRes.ok) {
+          const ensureData = await ensureRes.json()
+          if (ensureData.profile) {
+            setUserRole(ensureData.profile.role || 'volunteer')
+            setLoading(false)
+            return
           }
-        } catch (e) { console.error(e) }
-        setNeedsSetup(true)
-        setLoading(false)
-        return
-      }
+        }
+        // Fallback: try API /profile/me
+        const meRes = await fetch('/api/profile/me', {
+          headers: { 'Authorization': `Bearer ${s.access_token}` }
+        })
+        if (meRes.ok) {
+          const meData = await meRes.json()
+          if (meData.core) {
+            setUserRole(meData.core.role || 'volunteer')
+            setLoading(false)
+            return
+          }
+        }
+      } catch (e) { console.error('Profile fetch error:', e) }
 
-      setUserRole(profile?.role || 'volunteer')
+      setNeedsSetup(true)
       setLoading(false)
     }
 
