@@ -111,7 +111,7 @@ class YACoreVRPAPITester:
                 False
             )
 
-    async def test_auth_guards(self):
+    def test_auth_guards(self):
         """Test that all admin endpoints return 401 without authentication"""
         print("=== Testing Auth Guards (No Token) ===")
         
@@ -135,20 +135,15 @@ class YACoreVRPAPITester:
                 url = f"{self.base_url}{endpoint}"
                 
                 if method == "GET":
-                    async with self.session.get(url) as response:
-                        status = response.status
-                        try:
-                            data = await response.json()
-                        except:
-                            data = await response.text()
+                    response = requests.get(url, timeout=10)
                 elif method == "POST":
-                    headers = {"Content-Type": "application/json"}
-                    async with self.session.post(url, json=payload, headers=headers) as response:
-                        status = response.status
-                        try:
-                            data = await response.json()
-                        except:
-                            data = await response.text()
+                    response = requests.post(url, json=payload, timeout=10)
+                
+                status = response.status_code
+                try:
+                    data = response.json()
+                except:
+                    data = {"response": response.text}
                 
                 passed = status == 401
                 expected = "Status 401 (Unauthorized)"
@@ -175,35 +170,35 @@ class YACoreVRPAPITester:
                     False
                 )
 
-    async def test_invalid_token(self):
+    def test_invalid_token(self):
         """Test that endpoints return 401 with invalid Bearer token"""
         print("=== Testing Auth Guards (Invalid Token) ===")
         
         headers = {"Authorization": "Bearer invalid-token"}
         
         try:
-            async with self.session.get(f"{self.base_url}/api/admin/stock", headers=headers) as response:
-                status = response.status
-                try:
-                    data = await response.json()
-                except:
-                    data = await response.text()
-                
-                passed = status == 401
-                expected = "Status 401 (Unauthorized)"
-                actual = f"Status {status}"
-                
-                if isinstance(data, dict) and data.get("error"):
-                    actual += f", Error: {data['error']}"
-                
-                self.add_result(
-                    "invalid_token", 
-                    "GET /api/admin/stock (invalid token)", 
-                    expected,
-                    actual,
-                    passed,
-                    data if isinstance(data, dict) else {"response": str(data)}
-                )
+            response = requests.get(f"{self.base_url}/api/admin/stock", headers=headers, timeout=10)
+            status = response.status_code
+            try:
+                data = response.json()
+            except:
+                data = {"response": response.text}
+            
+            passed = status == 401
+            expected = "Status 401 (Unauthorized)"
+            actual = f"Status {status}"
+            
+            if isinstance(data, dict) and data.get("error"):
+                actual += f", Error: {data['error']}"
+            
+            self.add_result(
+                "invalid_token", 
+                "GET /api/admin/stock (invalid token)", 
+                expected,
+                actual,
+                passed,
+                data if isinstance(data, dict) else {"response": str(data)}
+            )
                 
         except Exception as e:
             self.add_result(
@@ -214,33 +209,33 @@ class YACoreVRPAPITester:
                 False
             )
 
-    async def test_not_found(self):
+    def test_not_found(self):
         """Test 404 handling for non-existent routes"""
         print("=== Testing 404 Handling ===")
         
         try:
-            async with self.session.get(f"{self.base_url}/api/nonexistent") as response:
-                status = response.status
-                try:
-                    data = await response.json()
-                except:
-                    data = await response.text()
-                
-                passed = status == 404
-                expected = "Status 404 (Not Found)"
-                actual = f"Status {status}"
-                
-                if isinstance(data, dict) and data.get("error"):
-                    actual += f", Error: {data['error']}"
-                
-                self.add_result(
-                    "not_found", 
-                    "GET /api/nonexistent", 
-                    expected,
-                    actual,
-                    passed,
-                    data if isinstance(data, dict) else {"response": str(data)}
-                )
+            response = requests.get(f"{self.base_url}/api/nonexistent", timeout=10)
+            status = response.status_code
+            try:
+                data = response.json()
+            except:
+                data = {"response": response.text}
+            
+            passed = status == 404
+            expected = "Status 404 (Not Found)"
+            actual = f"Status {status}"
+            
+            if isinstance(data, dict) and data.get("error"):
+                actual += f", Error: {data['error']}"
+            
+            self.add_result(
+                "not_found", 
+                "GET /api/nonexistent", 
+                expected,
+                actual,
+                passed,
+                data if isinstance(data, dict) else {"response": str(data)}
+            )
                 
         except Exception as e:
             self.add_result(
@@ -251,48 +246,42 @@ class YACoreVRPAPITester:
                 False
             )
 
-    async def run_all_tests(self):
+    def run_all_tests(self):
         """Run all test suites"""
         print(f"Starting YA Core VRP API Tests against {self.base_url}\n")
         
-        await self.create_session()
+        self.test_health_endpoints()
+        self.test_auth_guards()
+        self.test_invalid_token()
+        self.test_not_found()
         
-        try:
-            await self.test_health_endpoints()
-            await self.test_auth_guards()
-            await self.test_invalid_token()
-            await self.test_not_found()
-            
-            # Print summary
-            print("=" * 50)
-            print("TEST SUMMARY")
-            print("=" * 50)
-            summary = self.results["summary"]
-            print(f"Total Tests: {summary['total']}")
-            print(f"Passed: {summary['passed']}")
-            print(f"Failed: {summary['failed']}")
-            print(f"Success Rate: {(summary['passed']/summary['total']*100):.1f}%")
-            
-            if summary['failed'] > 0:
-                print("\nFAILED TESTS:")
-                for category, tests in self.results.items():
-                    if category != "summary" and isinstance(tests, list):
-                        for test in tests:
-                            if not test["passed"]:
-                                print(f"- {test['test']}: {test['actual']}")
-            
-            return self.results
-            
-        finally:
-            await self.close_session()
+        # Print summary
+        print("=" * 50)
+        print("TEST SUMMARY")
+        print("=" * 50)
+        summary = self.results["summary"]
+        print(f"Total Tests: {summary['total']}")
+        print(f"Passed: {summary['passed']}")
+        print(f"Failed: {summary['failed']}")
+        print(f"Success Rate: {(summary['passed']/summary['total']*100):.1f}%")
+        
+        if summary['failed'] > 0:
+            print("\nFAILED TESTS:")
+            for category, tests in self.results.items():
+                if category != "summary" and isinstance(tests, list):
+                    for test in tests:
+                        if not test["passed"]:
+                            print(f"- {test['test']}: {test['actual']}")
+        
+        return self.results
 
-async def main():
+def main():
     """Main entry point"""
     tester = YACoreVRPAPITester()
-    results = await tester.run_all_tests()
+    results = tester.run_all_tests()
     
     # Return results for further processing if needed
     return results
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
