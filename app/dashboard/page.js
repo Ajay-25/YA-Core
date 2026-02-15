@@ -856,22 +856,31 @@ function VolunteerDetailView({ session, userId, onBack, currentUserId }) {
       const { ya_id, first_name, middle_name, last_name, full_name, id, user_id, created_at, updated_at, ...dataFields } = formData
       const computedFullName = [first_name, middle_name, last_name].filter(Boolean).join(' ') || full_name
 
-      const adminSupabase = supabase
-      await Promise.all([
-        supabase.from('profiles_core').update({ ya_id, first_name, middle_name, last_name, full_name: computedFullName, updated_at: new Date().toISOString() }).eq('user_id', userId),
-        supabase.from('profiles_data').update({ ...dataFields, updated_at: new Date().toISOString() }).eq('user_id', userId),
-      ])
-
-      const { id: sId, user_id: sUid, created_at: sCa, updated_at: sUa, ...sensitiveFields } = sensitiveData
-      await fetch('/api/admin/sensitive/update', {
+      // Update core + data via admin API
+      const coreRes = await fetch('/api/admin/sensitive/update', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ target_user_id: userId, ...sensitiveFields })
+        body: JSON.stringify({ target_user_id: userId, ...(() => { const { id: sId, user_id: sUid, created_at: sCa, updated_at: sUa, ...sensitiveFields } = sensitiveData; return sensitiveFields })() })
       })
 
-      toast.success('Profile updated!')
-      queryClient.invalidateQueries({ queryKey: ['volunteer-detail', userId] })
-      queryClient.invalidateQueries({ queryKey: ['volunteers'] })
+      // Use the volunteer update endpoint
+      const updateRes = await fetch('/api/admin/volunteer-update', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          target_user_id: userId,
+          core: { ya_id, first_name, middle_name, last_name, full_name: computedFullName },
+          data: dataFields
+        })
+      })
+
+      if (updateRes.ok) {
+        toast.success('Profile updated!')
+        queryClient.invalidateQueries({ queryKey: ['volunteer-detail', userId] })
+        queryClient.invalidateQueries({ queryKey: ['volunteers'] })
+      } else {
+        toast.error('Some fields may not have saved')
+      }
     } catch { toast.error('Save failed') }
     setSaving(false)
   }
