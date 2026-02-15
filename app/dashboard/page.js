@@ -1176,9 +1176,22 @@ function App() {
     setNeedsSetup(false); setLoading(true)
     const { data: { session: s } } = await supabase.auth.getSession()
     if (s) {
-      await fetch('/api/profile/ensure', { method: 'POST', headers: { 'Authorization': `Bearer ${s.access_token}` } })
-      const { data: p } = await supabase.from('profiles_core').select('role').eq('user_id', s.user.id).single()
-      if (p) { setUserRole(p.role); setNeedsSetup(false) } else setNeedsSetup(true)
+      try {
+        const ensureRes = await fetch('/api/profile/ensure', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${s.access_token}`, 'Content-Type': 'application/json' }
+        })
+        if (ensureRes.ok) {
+          const ensureData = await ensureRes.json()
+          if (ensureData.profile) {
+            setUserRole(ensureData.profile.role || 'volunteer')
+            setNeedsSetup(false)
+            setLoading(false)
+            return
+          }
+        }
+      } catch (e) { console.error(e) }
+      setNeedsSetup(true)
     }
     setLoading(false)
   }
