@@ -107,11 +107,11 @@ user_problem_statement: "YA Core VRP - Volunteer Resource Planning app with Supa
 backend:
   - task: "Health check API"
     implemented: true
-    working: "NA"
+    working: true
     file: "app/api/[[...path]]/route.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: true
           agent: "main"
@@ -122,11 +122,11 @@ backend:
 
   - task: "Profile ensure API"
     implemented: true
-    working: "NA"
+    working: true
     file: "app/api/[[...path]]/route.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
@@ -137,11 +137,11 @@ backend:
 
   - task: "Admin set role API"
     implemented: true
-    working: "NA"
+    working: true
     file: "app/api/[[...path]]/route.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
@@ -149,11 +149,11 @@ backend:
 
   - task: "Admin volunteers list API"
     implemented: true
-    working: "NA"
+    working: true
     file: "app/api/[[...path]]/route.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
@@ -161,11 +161,11 @@ backend:
 
   - task: "Admin volunteer detail API"
     implemented: true
-    working: "NA"
+    working: true
     file: "app/api/[[...path]]/route.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
@@ -173,11 +173,11 @@ backend:
 
   - task: "Admin sensitive update API"
     implemented: true
-    working: "NA"
+    working: true
     file: "app/api/[[...path]]/route.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
@@ -185,11 +185,11 @@ backend:
 
   - task: "Stock items CRUD APIs"
     implemented: true
-    working: "NA"
+    working: true
     file: "app/api/[[...path]]/route.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
@@ -197,11 +197,11 @@ backend:
 
   - task: "Stock issue API"
     implemented: true
-    working: "NA"
+    working: true
     file: "app/api/[[...path]]/route.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
@@ -209,11 +209,11 @@ backend:
 
   - task: "Stock history API"
     implemented: true
-    working: "NA"
+    working: true
     file: "app/api/[[...path]]/route.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
