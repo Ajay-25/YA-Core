@@ -43,31 +43,34 @@ class YACoreVRPAPITester:
             print(f"  Response: {json.dumps(response_data, indent=2)}")
         print()
 
-    async def test_health_endpoints(self):
+    def test_health_endpoints(self):
         """Test health check endpoints that don't require authentication"""
         print("=== Testing Health Check Endpoints ===")
         
         # Test GET /api/health
         try:
-            async with self.session.get(f"{self.base_url}/api/health") as response:
-                status = response.status
-                data = await response.json()
+            response = requests.get(f"{self.base_url}/api/health", timeout=10)
+            status = response.status_code
+            try:
+                data = response.json()
+            except:
+                data = {"response": response.text}
                 
-                expected_status = 200
-                expected_data = {"status": "ok", "app": "YA Core VRP"}
-                
-                passed = (status == expected_status and 
-                         data.get("status") == "ok" and 
-                         data.get("app") == "YA Core VRP")
-                
-                self.add_result(
-                    "health_check", 
-                    "GET /api/health", 
-                    f"Status 200, {expected_data}",
-                    f"Status {status}, {data}",
-                    passed,
-                    data
-                )
+            expected_status = 200
+            expected_data = {"status": "ok", "app": "YA Core VRP"}
+            
+            passed = (status == expected_status and 
+                     data.get("status") == "ok" and 
+                     data.get("app") == "YA Core VRP")
+            
+            self.add_result(
+                "health_check", 
+                "GET /api/health", 
+                f"Status 200, {expected_data}",
+                f"Status {status}, {data}",
+                passed,
+                data
+            )
         except Exception as e:
             self.add_result(
                 "health_check", 
@@ -79,23 +82,26 @@ class YACoreVRPAPITester:
 
         # Test GET /api/ (root endpoint)
         try:
-            async with self.session.get(f"{self.base_url}/api/") as response:
-                status = response.status
-                data = await response.json()
+            response = requests.get(f"{self.base_url}/api/", timeout=10)
+            status = response.status_code
+            try:
+                data = response.json()
+            except:
+                data = {"response": response.text}
                 
-                expected_status = 200
-                passed = (status == expected_status and 
-                         data.get("status") == "ok" and 
-                         data.get("app") == "YA Core VRP")
-                
-                self.add_result(
-                    "health_check", 
-                    "GET /api/", 
-                    f"Status 200, health response",
-                    f"Status {status}, {data}",
-                    passed,
-                    data
-                )
+            expected_status = 200
+            passed = (status == expected_status and 
+                     data.get("status") == "ok" and 
+                     data.get("app") == "YA Core VRP")
+            
+            self.add_result(
+                "health_check", 
+                "GET /api/", 
+                f"Status 200, health response",
+                f"Status {status}, {data}",
+                passed,
+                data
+            )
         except Exception as e:
             self.add_result(
                 "health_check", 
