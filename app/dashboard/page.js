@@ -1150,13 +1150,22 @@ function App() {
       const { ya_id, first_name, middle_name, last_name, full_name, id, user_id, created_at, updated_at, ...dataFields } = formData
       const computedFullName = [first_name, middle_name, last_name].filter(Boolean).join(' ') || full_name
 
-      await Promise.all([
-        supabase.from('profiles_core').update({ ya_id, first_name, middle_name, last_name, full_name: computedFullName, updated_at: new Date().toISOString() }).eq('user_id', user.id),
-        supabase.from('profiles_data').update({ ...dataFields, updated_at: new Date().toISOString() }).eq('user_id', user.id)
-      ])
+      // Use service role API for profile updates to bypass RLS
+      const res = await fetch('/api/profile/update', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          core: { ya_id, first_name, middle_name, last_name, full_name: computedFullName },
+          data: dataFields
+        })
+      })
 
-      toast.success('Profile saved!')
-      queryClient.invalidateQueries({ queryKey: ['my-profile'] })
+      if (res.ok) {
+        toast.success('Profile saved!')
+        queryClient.invalidateQueries({ queryKey: ['my-profile'] })
+      } else {
+        toast.error('Failed to save')
+      }
     } catch { toast.error('Failed to save') }
     setSaving(false)
   }
