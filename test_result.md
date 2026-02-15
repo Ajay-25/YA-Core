@@ -102,20 +102,20 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "YA Core VRP - Volunteer Resource Planning app with Supabase Auth (Magic Link), RBAC, profile management with tabs, QR scanner for kit issuance, and RLS security policies."
+user_problem_statement: "YA Core VRP - Volunteer Resource Planning app with Supabase Auth (Magic Link), RBAC, profile management with 6 tabs mapping 95+ Google Sheet columns, Stock Management Portal (inventory + issue to volunteers), and RLS security policies."
 
 backend:
   - task: "Health check API"
     implemented: true
-    working: "NA"
+    working: true
     file: "app/api/[[...path]]/route.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
-        - working: "NA"
+        - working: true
           agent: "main"
-          comment: "GET /api/health returns status ok"
+          comment: "GET /api/health returns {status: ok, app: 'YA Core VRP'} - verified via curl"
 
   - task: "Profile ensure API"
     implemented: true
@@ -127,7 +127,7 @@ backend:
     status_history:
         - working: "NA"
           agent: "main"
-          comment: "POST /api/profile/ensure - creates profile if not exists using service role"
+          comment: "POST /api/profile/ensure - creates profile via service role. Returns 401 without auth token."
 
   - task: "Admin set role API"
     implemented: true
@@ -139,31 +139,7 @@ backend:
     status_history:
         - working: "NA"
           agent: "main"
-          comment: "POST /api/admin/set-role - requires admin auth, sets user role"
-
-  - task: "Admin inventory check API"
-    implemented: true
-    working: "NA"
-    file: "app/api/[[...path]]/route.js"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: true
-    status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "POST /api/admin/inventory/check - checks kit issuance status"
-
-  - task: "Admin inventory issue API"
-    implemented: true
-    working: "NA"
-    file: "app/api/[[...path]]/route.js"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: true
-    status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "POST /api/admin/inventory/issue - issues kit to volunteer"
+          comment: "POST /api/admin/set-role - requires admin auth, changes user role"
 
   - task: "Admin volunteers list API"
     implemented: true
@@ -175,7 +151,7 @@ backend:
     status_history:
         - working: "NA"
           agent: "main"
-          comment: "GET /api/admin/volunteers - returns paginated volunteer list with search"
+          comment: "GET /api/admin/volunteers - paginated, searchable. Returns 401 without auth."
 
   - task: "Admin volunteer detail API"
     implemented: true
@@ -187,7 +163,7 @@ backend:
     status_history:
         - working: "NA"
           agent: "main"
-          comment: "GET /api/admin/volunteer/:id - returns full volunteer profile"
+          comment: "GET /api/admin/volunteer/:id - full profile with core, data, sensitive, inventory"
 
   - task: "Admin sensitive update API"
     implemented: true
@@ -201,18 +177,66 @@ backend:
           agent: "main"
           comment: "POST /api/admin/sensitive/update - updates sensitive data via service role"
 
-frontend:
-  - task: "Login page with Magic Link"
+  - task: "Stock items CRUD APIs"
     implemented: true
     working: "NA"
-    file: "app/page.js"
+    file: "app/api/[[...path]]/route.js"
     stuck_count: 0
     priority: "high"
     needs_retesting: true
     status_history:
         - working: "NA"
           agent: "main"
-          comment: "Renders login card with email input and magic link button. Mobile-first design."
+          comment: "GET/POST /api/admin/stock, POST /api/admin/stock/update, POST /api/admin/stock/delete"
+
+  - task: "Stock issue API"
+    implemented: true
+    working: "NA"
+    file: "app/api/[[...path]]/route.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "POST /api/admin/stock/issue - issues stock to volunteer, checks availability, updates qty"
+
+  - task: "Stock history API"
+    implemented: true
+    working: "NA"
+    file: "app/api/[[...path]]/route.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "GET /api/admin/stock/history - paginated issuance history with volunteer info"
+
+  - task: "Search volunteers for stock issuance"
+    implemented: true
+    working: "NA"
+    file: "app/api/[[...path]]/route.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "GET /api/admin/stock/search-volunteers?q=search - returns matching volunteers"
+
+frontend:
+  - task: "Login page with Magic Link"
+    implemented: true
+    working: true
+    file: "app/page.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "Renders correctly on mobile. Screenshot verified."
 
   - task: "Auth callback page"
     implemented: true
@@ -220,13 +244,13 @@ frontend:
     file: "app/auth/callback/page.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
-          comment: "Handles PKCE code exchange and redirects to dashboard"
+          comment: "Handles PKCE code exchange. Requires live auth test."
 
-  - task: "Dashboard with profile tabs"
+  - task: "Dashboard with 6 profile tabs"
     implemented: true
     working: "NA"
     file: "app/dashboard/page.js"
@@ -236,21 +260,9 @@ frontend:
     status_history:
         - working: "NA"
           agent: "main"
-          comment: "Full dashboard with Identity/Logistics/Docs tabs, mobile bottom nav, admin views"
+          comment: "6 tabs: Personal, Contact, Address, Sewa, Education & Work, YA Status. Maps all 95+ sheet columns."
 
-  - task: "QR Code view"
-    implemented: true
-    working: "NA"
-    file: "app/dashboard/page.js"
-    stuck_count: 0
-    priority: "medium"
-    needs_retesting: true
-    status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "Shows user QR code using react-qr-code"
-
-  - task: "Admin Scanner view"
+  - task: "Stock Management Portal"
     implemented: true
     working: "NA"
     file: "app/dashboard/page.js"
@@ -260,9 +272,9 @@ frontend:
     status_history:
         - working: "NA"
           agent: "main"
-          comment: "QR scanner with camera + manual entry, kit status check, issue button"
+          comment: "3 sub-tabs: Inventory (CRUD), Issue Stock (search volunteer + select item), History"
 
-  - task: "Admin Volunteer List"
+  - task: "Volunteer List and Detail (Admin)"
     implemented: true
     working: "NA"
     file: "app/dashboard/page.js"
@@ -272,26 +284,24 @@ frontend:
     status_history:
         - working: "NA"
           agent: "main"
-          comment: "Searchable paginated volunteer list with detail view"
+          comment: "Searchable list with detail view showing all tabs + sensitive + issued items"
 
 metadata:
   created_by: "main_agent"
-  version: "1.0"
-  test_sequence: 1
+  version: "2.0"
+  test_sequence: 2
   run_ui: false
 
 test_plan:
   current_focus:
     - "Health check API"
-    - "Profile ensure API"
-    - "Admin set role API"
-    - "Admin inventory check API"
-    - "Admin inventory issue API"
-    - "Admin volunteers list API"
+    - "Stock items CRUD APIs"
+    - "Stock issue API"
+    - "Auth guards on all admin endpoints"
   stuck_tasks: []
   test_all: true
   test_priority: "high_first"
 
 agent_communication:
     - agent: "main"
-      message: "All backend APIs implemented. The app uses Supabase for auth and database. API routes use service role key for admin operations. Note: Some endpoints require valid Supabase auth tokens. The testing agent should test: 1) Health check (no auth needed), 2) Unauthenticated access returns 401, 3) API routing works correctly. The Supabase database tables may not be set up yet (user needs to run SQL), so some Supabase operations may fail - that's expected. Focus on testing API structure and auth guards."
+      message: "v2 update: Replaced Scanner with Stock Management Portal. Updated schema to match 95+ Google Sheet columns. Backend APIs all implemented. KEY TESTING NOTES: 1) Health check needs no auth - should return 200. 2) ALL admin endpoints should return 401 without auth token. 3) Supabase tables may not exist yet (user runs SQL manually), so Supabase errors are expected on authenticated calls. 4) Test API routing and auth guards. Base URL: http://localhost:3000"
