@@ -54,29 +54,50 @@ async function handleRoute(request, { params }) {
     }
 
     // =============================================
-    // PROFILE: Ensure profile exists
+    // PROFILE: Ensure profile exists + return it
     // =============================================
     if (route === '/profile/ensure' && method === 'POST') {
       const user = await getUserFromToken(request)
       if (!user) return cors(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
 
       const adminSupabase = createAdminSupabase()
-      const { data: existing } = await adminSupabase
+      let { data: existing } = await adminSupabase
         .from('profiles_core')
-        .select('id')
+        .select('*')
         .eq('user_id', user.id)
         .single()
 
       if (!existing) {
         const fullName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Volunteer'
-        await adminSupabase.from('profiles_core').insert({
+        const { data: newProfile } = await adminSupabase.from('profiles_core').insert({
           user_id: user.id, full_name: fullName, first_name: fullName,
           role: 'volunteer', qr_code_url: user.id
-        })
+        }).select().single()
         await adminSupabase.from('profiles_data').insert({ user_id: user.id, email_id: user.email || '' })
         await adminSupabase.from('profiles_sensitive').insert({ user_id: user.id })
+        existing = newProfile
       }
-      return cors(NextResponse.json({ status: 'ok' }))
+      return cors(NextResponse.json({ status: 'ok', profile: existing }))
+    }
+
+    // =============================================
+    // PROFILE: Get my profile (bypasses RLS)
+    // =============================================
+    if (route === '/profile/me' && method === 'GET') {
+      const user = await getUserFromToken(request)
+      if (!user) return cors(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
+
+      const adminSupabase = createAdminSupabase()
+      const [coreRes, dataRes] = await Promise.all([
+        adminSupabase.from('profiles_core').select('*').eq('user_id', user.id).single(),
+        adminSupabase.from('profiles_data').select('*').eq('user_id', user.id).single()
+      ])
+
+      if (!coreRes.data) {
+        return cors(NextResponse.json({ error: 'Profile not found' }, { status: 404 }))
+      }
+
+      return cors(NextResponse.json({ core: coreRes.data, data: dataRes.data }))
     }
 
     // =============================================
