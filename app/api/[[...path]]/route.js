@@ -1,6 +1,13 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
-import { canEditVolunteerProfiles, canManageStock } from '@/lib/api-auth'
+import {
+  canEditVolunteerProfiles,
+  canManageStock,
+  canAccessStock,
+  canAccessDirectory,
+  getAccessTokenFromRequest,
+  createServerSupabaseClient,
+} from '@/lib/api-auth'
 
 function createAdminSupabase() {
   return createClient(
@@ -164,16 +171,19 @@ async function handleRoute(request, { params }) {
       const user = await getUserFromToken(request)
       if (!user) return cors(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
       const adminSupabase = createAdminSupabase()
-      if (!(await isAdmin(adminSupabase, user.id))) return cors(NextResponse.json({ error: 'Forbidden' }, { status: 403 }))
+      if (!(await canAccessDirectory(adminSupabase, user.id))) {
+        return cors(NextResponse.json({ error: 'Unauthorized: Missing directory:view permission' }, { status: 403 }))
+      }
 
       const url = new URL(request.url)
       const search = url.searchParams.get('search') || ''
       const page = parseInt(url.searchParams.get('page') || '0')
       const pageSize = parseInt(url.searchParams.get('pageSize') || '20')
 
+      const profilesDataFields = 'contact_number, email_id, gender, date_of_birth, age, permanent_address, sewa_center, sewa_zone, primary_sewa_current, primary_sewa_permanent, permanent_icard_status, uniform, date_of_joining, years_in_ya, active_status'
       let query = adminSupabase
         .from('profiles_core')
-        .select('*, profiles_data(contact_number, city_town_village, sewa_center, active_status, ya_id_remarks)', { count: 'exact' })
+        .select(`id, user_id, full_name, ya_id, photo_url, role, profiles_data(${profilesDataFields})`, { count: 'exact' })
         .order('full_name')
         .range(page * pageSize, (page + 1) * pageSize - 1)
 
@@ -193,7 +203,9 @@ async function handleRoute(request, { params }) {
       const user = await getUserFromToken(request)
       if (!user) return cors(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
       const adminSupabase = createAdminSupabase()
-      if (!(await isAdmin(adminSupabase, user.id))) return cors(NextResponse.json({ error: 'Forbidden' }, { status: 403 }))
+      if (!(await canAccessDirectory(adminSupabase, user.id))) {
+        return cors(NextResponse.json({ error: 'Unauthorized: Missing directory:view permission' }, { status: 403 }))
+      }
 
       const targetUserId = path[path.length - 1]
       const coreRes = await adminSupabase.from('profiles_core').select('*').eq('user_id', targetUserId).single()
@@ -241,9 +253,30 @@ async function handleRoute(request, { params }) {
     if (route === '/admin/volunteer-update' && method === 'POST') {
       const user = await getUserFromToken(request)
       if (!user) return cors(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
-      const adminSupabase = createAdminSupabase()
-      if (!(await canEditVolunteerProfiles(adminSupabase, user.id))) return cors(NextResponse.json({ error: 'Forbidden' }, { status: 403 }))
 
+      const accessToken = getAccessTokenFromRequest(request)
+      const serverSupabase = createServerSupabaseClient(accessToken)
+      if (!serverSupabase) {
+        return cors(NextResponse.json({ error: 'Unauthorized: Missing directory:edit permission' }, { status: 403 }))
+      }
+
+      const { data: profile } = await serverSupabase
+        .from('profiles_core')
+        .select('role, accessible_modules')
+        .eq('user_id', user.id)
+        .single()
+
+      const modules = profile?.accessible_modules ?? []
+      const canEdit =
+        profile?.role === 'admin' ||
+        (Array.isArray(modules) &&
+          (modules.includes('profile_edit') || modules.includes('directory:edit') || modules.includes('directory_edit')))
+
+      if (!canEdit) {
+        return cors(NextResponse.json({ error: 'Unauthorized: Missing directory:edit permission' }, { status: 403 }))
+      }
+
+      const adminSupabase = createAdminSupabase()
       const { target_user_id, core: coreUpdate, data: dataUpdate } = await request.json()
       if (!target_user_id) return cors(NextResponse.json({ error: 'target_user_id required' }, { status: 400 }))
 
@@ -477,7 +510,9 @@ async function handleRoute(request, { params }) {
       const user = await getUserFromToken(request)
       if (!user) return cors(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
       const adminSupabase = createAdminSupabase()
-      if (!(await isAdmin(adminSupabase, user.id))) return cors(NextResponse.json({ error: 'Forbidden' }, { status: 403 }))
+      if (!(await canAccessStock(adminSupabase, user.id))) {
+        return cors(NextResponse.json({ error: 'Unauthorized: Missing stock permissions' }, { status: 403 }))
+      }
 
       const { data, error } = await adminSupabase
         .from('inventory_items')
@@ -721,7 +756,9 @@ async function handleRoute(request, { params }) {
       const user = await getUserFromToken(request)
       if (!user) return cors(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
       const adminSupabase = createAdminSupabase()
-      if (!(await isAdmin(adminSupabase, user.id))) return cors(NextResponse.json({ error: 'Forbidden' }, { status: 403 }))
+      if (!(await canAccessStock(adminSupabase, user.id))) {
+        return cors(NextResponse.json({ error: 'Unauthorized: Missing stock permissions' }, { status: 403 }))
+      }
 
       const url = new URL(request.url)
       const limit = Math.min(parseInt(url.searchParams.get('limit') || '50', 10), 100)

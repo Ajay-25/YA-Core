@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createAdminSupabase, getUserFromToken, canEditVolunteerProfiles } from '@/lib/api-auth'
+import { createAdminSupabase, getUserFromToken, canAccessDirectory } from '@/lib/api-auth'
 
 function cors(response) {
   response.headers.set('Access-Control-Allow-Origin', '*')
@@ -13,8 +13,9 @@ export async function GET(request, { params }) {
   if (!user) return cors(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
 
   const adminSupabase = createAdminSupabase()
-  const canAccess = await canEditVolunteerProfiles(adminSupabase, user.id)
-  if (!canAccess) return cors(NextResponse.json({ error: 'Forbidden' }, { status: 403 }))
+  if (!(await canAccessDirectory(adminSupabase, user.id))) {
+    return cors(NextResponse.json({ error: 'Unauthorized: Missing directory:view permission' }, { status: 403 }))
+  }
 
   const paramId = params?.id
   if (!paramId) return cors(NextResponse.json({ error: 'ID required' }, { status: 400 }))

@@ -5,62 +5,51 @@ import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import {
   User,
-  QrCode,
   Users,
   Package,
   ClipboardCheck,
   CreditCard,
+  ShieldCheck,
 } from 'lucide-react'
 import { useDashboard } from '@/contexts/DashboardContext'
+import { hasAnyPermission, PERMISSIONS } from '@/lib/permissions'
 
 const NAV_ITEMS = [
   {
     label: 'Profile',
     href: '/dashboard/profile',
     icon: User,
-    isVisible: () => true,
-  },
-  {
-    label: 'My QR',
-    href: '/dashboard/qr',
-    icon: QrCode,
-    isVisible: () => true,
+    requiredPermissions: null,
   },
   {
     label: 'Volunteers',
     href: '/dashboard/volunteers',
     icon: Users,
-    isVisible: (role, modules) =>
-      role === 'admin' ||
-      role === 'coordinator' ||
-      (role === 'moderator' && modules.includes('profile_edit')),
+    requiredPermissions: [PERMISSIONS.DIRECTORY_VIEW],
   },
   {
     label: 'Stock',
     href: '/dashboard/stock',
     icon: Package,
-    isVisible: (role, modules) =>
-      role === 'admin' ||
-      role === 'coordinator' ||
-      (role === 'moderator' && modules.includes('stock_manage')),
+    requiredPermissions: [PERMISSIONS.STOCK_ISSUE, PERMISSIONS.STOCK_MANAGE],
   },
   {
     label: 'Attendance',
     href: '/dashboard/attendance',
     icon: ClipboardCheck,
-    isVisible: (role, modules) =>
-      role === 'admin' ||
-      role === 'coordinator' ||
-      (role === 'moderator' && modules.includes('attendance_mark')),
+    requiredPermissions: [PERMISSIONS.ATTENDANCE_MARK],
   },
   {
     label: 'IDs',
     href: '/dashboard/id-cards',
     icon: CreditCard,
-    isVisible: (role, modules) =>
-      role === 'admin' ||
-      role === 'coordinator' ||
-      (role === 'moderator' && modules.includes('id_distribute')),
+    requiredPermissions: [PERMISSIONS.DIRECTORY_VIEW],
+  },
+  {
+    label: 'Access',
+    href: '/dashboard/admin/access',
+    icon: ShieldCheck,
+    requiredPermissions: [PERMISSIONS.SYSTEM_MANAGE_ACCESS],
   },
 ]
 
@@ -70,9 +59,11 @@ export function BottomNav() {
 
   const visibleItems = useMemo(() => {
     if (!role) return []
-    return NAV_ITEMS.filter((item) =>
-      item.isVisible(role, accessibleModules ?? [])
-    )
+    const userCtx = { role, accessibleModules }
+    return NAV_ITEMS.filter((item) => {
+      if (!item.requiredPermissions) return true
+      return hasAnyPermission(userCtx, item.requiredPermissions)
+    })
   }, [role, accessibleModules])
 
   if (visibleItems.length === 0) return null

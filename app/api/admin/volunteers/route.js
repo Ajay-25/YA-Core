@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createAdminSupabase, getUserFromToken, canEditVolunteerProfiles } from '@/lib/api-auth'
+import { createAdminSupabase, getUserFromToken, canAccessDirectory } from '@/lib/api-auth'
 
 function cors(response) {
   response.headers.set('Access-Control-Allow-Origin', '*')
@@ -13,8 +13,9 @@ export async function GET(request) {
   if (!user) return cors(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
 
   const adminSupabase = createAdminSupabase()
-  const canAccess = await canEditVolunteerProfiles(adminSupabase, user.id)
-  if (!canAccess) return cors(NextResponse.json({ error: 'Forbidden' }, { status: 403 }))
+  if (!(await canAccessDirectory(adminSupabase, user.id))) {
+    return cors(NextResponse.json({ error: 'Unauthorized: Missing directory:view permission' }, { status: 403 }))
+  }
 
   const { searchParams } = new URL(request.url)
   const search = (searchParams.get('search') || '').trim()
@@ -25,9 +26,11 @@ export async function GET(request) {
   const to = from + pageSize - 1
 
   try {
+    // Smart fetch: core + explicit profiles_data fields for list + sheet (zero-fetch on open). No profiles_sensitive.
+    const profilesDataFields = 'contact_number, email_id, gender, date_of_birth, age, permanent_address, sewa_center, sewa_zone, primary_sewa_current, primary_sewa_permanent, permanent_icard_status, uniform, date_of_joining, years_in_ya, active_status'
     let query = adminSupabase
       .from('profiles_core')
-      .select('*, profiles_data(*), profiles_sensitive(*)', { count: 'exact' })
+      .select(`id, user_id, full_name, ya_id, photo_url, role, profiles_data(${profilesDataFields})`, { count: 'exact' })
       .order('full_name')
       .range(from, to)
 

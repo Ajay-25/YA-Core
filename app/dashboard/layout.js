@@ -1,8 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
 import { DashboardProvider, useDashboard } from '@/contexts/DashboardContext'
 import { BottomNav } from '@/components/dashboard/BottomNav'
+import { canAccessRoute } from '@/lib/permissions'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -94,12 +96,31 @@ function DashboardShell({ children }) {
   const {
     user,
     role,
+    accessibleModules,
     profileCore,
     isLoading,
     needsSetup,
     handleLogout,
     handleRetrySetup,
   } = useDashboard()
+  const pathname = usePathname()
+  const router = useRouter()
+  const lastDeniedRef = useRef('')
+
+  useEffect(() => {
+    if (isLoading || needsSetup || !role) return
+
+    const userCtx = { role, accessibleModules }
+    if (!canAccessRoute(userCtx, pathname)) {
+      if (lastDeniedRef.current !== pathname) {
+        lastDeniedRef.current = pathname
+        toast.error('Permission Denied', {
+          description: 'You don\u2019t have access to this section.',
+        })
+      }
+      router.replace('/dashboard/profile')
+    }
+  }, [pathname, role, accessibleModules, isLoading, needsSetup, router])
 
   if (isLoading) {
     return (

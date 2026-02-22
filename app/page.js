@@ -20,6 +20,7 @@ function App() {
   const [error, setError] = useState('')
   const [authMode, setAuthMode] = useState(AUTH_MODE_SIGN_IN)
   const [checkingAuth, setCheckingAuth] = useState(true)
+  const [signUpSuccess, setSignUpSuccess] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -37,6 +38,7 @@ function App() {
   const resetForm = useCallback(() => {
     setError('')
     setPassword('')
+    setSignUpSuccess(false)
   }, [])
 
   const toggleAuthMode = useCallback(() => {
@@ -77,9 +79,7 @@ function App() {
         return
       }
 
-      toast.success('Account created! You can now sign in.')
-      setAuthMode(AUTH_MODE_SIGN_IN)
-      setPassword('')
+      setSignUpSuccess(true)
       setIsSubmitting(false)
     }
   }
@@ -93,6 +93,51 @@ function App() {
   }
 
   const isSignIn = authMode === AUTH_MODE_SIGN_IN
+
+  if (signUpSuccess) {
+    return (
+      <div className="flex items-center justify-center min-h-screen p-4 bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+        <Card className="w-full max-w-sm shadow-xl border-0">
+          <CardHeader className="text-center pb-4">
+            <div className="mx-auto w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center mb-3 shadow-lg">
+              <Mail className="h-8 w-8 text-emerald-600" />
+            </div>
+            <CardTitle className="text-xl font-bold">Check Your Email</CardTitle>
+            <CardDescription className="text-sm">
+              We&apos;ve sent a verification link to
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="bg-muted rounded-lg px-4 py-3 text-center">
+              <p className="text-sm font-medium break-all">{email}</p>
+            </div>
+            <div className="space-y-2 text-center">
+              <p className="text-xs text-muted-foreground">
+                Click the link in the email to verify your account. Once verified, sign in and you&apos;ll be guided to link your YA volunteer profile.
+              </p>
+              <div className="flex items-center justify-center gap-1.5 pt-1">
+                <CheckCircle className="h-3.5 w-3.5 text-emerald-500" />
+                <span className="text-[11px] text-muted-foreground">
+                  Verify email &rarr; Sign in &rarr; Link YA ID
+                </span>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              className="w-full h-11 font-medium"
+              onClick={() => {
+                setSignUpSuccess(false)
+                setAuthMode(AUTH_MODE_SIGN_IN)
+                setPassword('')
+              }}
+            >
+              Back to Sign In
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen p-4 bg-gradient-to-br from-blue-50 via-white to-indigo-50">
