@@ -83,6 +83,39 @@
   }
 }
 
+/* Sheet slide up from center-bottom (for max-w centered bottom sheets) */
+@keyframes sheet-slide-in-from-bottom {
+  from {
+    transform: translate(-50%, 100%);
+  }
+  to {
+    transform: translate(-50%, 0);
+  }
+}
+@keyframes sheet-slide-out-to-bottom {
+  from {
+    transform: translate(-50%, 0);
+  }
+  to {
+    transform: translate(-50%, 100%);
+  }
+}
+.sheet-slide-from-bottom-center[data-state="open"] {
+  animation: sheet-slide-in-from-bottom 0.5s ease-out !important;
+}
+.sheet-slide-from-bottom-center[data-state="closed"] {
+  animation: sheet-slide-out-to-bottom 0.3s ease-in !important;
+}
+
+/* Hide scrollbar for overflow containers */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* QR Scanner Styles */
 #qr-reader {
   width: 100% !important;

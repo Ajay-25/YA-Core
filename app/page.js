@@ -1,18 +1,24 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Mail, Loader2, CheckCircle, Shield } from 'lucide-react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Mail, Lock, Loader2, Shield, AlertCircle, CheckCircle } from 'lucide-react'
+import { toast } from 'sonner'
+
+const AUTH_MODE_SIGN_IN = 'signin'
+const AUTH_MODE_SIGN_UP = 'signup'
 
 function App() {
   const [email, setEmail] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [sent, setSent] = useState(false)
+  const [password, setPassword] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [authMode, setAuthMode] = useState(AUTH_MODE_SIGN_IN)
   const [checkingAuth, setCheckingAuth] = useState(true)
   const router = useRouter()
 
@@ -28,26 +34,54 @@ function App() {
     checkAuth()
   }, [router])
 
-  const handleLogin = async (e) => {
+  const resetForm = useCallback(() => {
+    setError('')
+    setPassword('')
+  }, [])
+
+  const toggleAuthMode = useCallback(() => {
+    setAuthMode((prev) =>
+      prev === AUTH_MODE_SIGN_IN ? AUTH_MODE_SIGN_UP : AUTH_MODE_SIGN_IN
+    )
+    resetForm()
+  }, [resetForm])
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    setLoading(true)
+    setIsSubmitting(true)
     setError('')
 
-    const redirectTo = `${window.location.origin}/auth/callback`
+    if (authMode === AUTH_MODE_SIGN_IN) {
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
 
-    const { error: authError } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: redirectTo
+      if (authError) {
+        setError(authError.message)
+        setIsSubmitting(false)
+        return
       }
-    })
 
-    if (authError) {
-      setError(authError.message)
+      toast.success('Signed in successfully')
+      router.push('/dashboard')
     } else {
-      setSent(true)
+      const { error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+      })
+
+      if (signUpError) {
+        setError(signUpError.message)
+        setIsSubmitting(false)
+        return
+      }
+
+      toast.success('Account created! You can now sign in.')
+      setAuthMode(AUTH_MODE_SIGN_IN)
+      setPassword('')
+      setIsSubmitting(false)
     }
-    setLoading(false)
   }
 
   if (checkingAuth) {
@@ -58,6 +92,8 @@ function App() {
     )
   }
 
+  const isSignIn = authMode === AUTH_MODE_SIGN_IN
+
   return (
     <div className="flex items-center justify-center min-h-screen p-4 bg-gradient-to-br from-blue-50 via-white to-indigo-50">
       <Card className="w-full max-w-sm shadow-xl border-0">
@@ -66,63 +102,99 @@ function App() {
             <Shield className="h-8 w-8 text-primary-foreground" />
           </div>
           <CardTitle className="text-2xl font-bold">YA Core</CardTitle>
-          <CardDescription className="text-sm">Volunteer Resource Planning</CardDescription>
+          <CardDescription className="text-sm">
+            Volunteer Resource Planning
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          {sent ? (
-            <div className="text-center space-y-4 py-4">
-              <CheckCircle className="h-14 w-14 text-green-500 mx-auto" />
-              <h3 className="font-semibold text-lg">Check your email</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">
-                We sent a magic link to<br />
-                <strong className="text-foreground">{email}</strong>
-              </p>
-              <p className="text-xs text-muted-foreground">Click the link in your email to sign in.</p>
-              <Button variant="ghost" size="sm" onClick={() => { setSent(false); setEmail('') }}>
-                Use a different email
-              </Button>
-            </div>
-          ) : (
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Email address</label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    type="email"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10 h-11"
-                    required
-                    autoFocus
-                  />
-                </div>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="email" className="text-sm font-medium">
+                Email address
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="pl-10 h-11"
+                  required
+                  autoFocus
+                  disabled={isSubmitting}
+                />
               </div>
-              {error && (
-                <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-lg">
-                  {error}
-                </div>
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="password" className="text-sm font-medium">
+                Password
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder={isSignIn ? 'Enter your password' : 'Create a password (min. 6 chars)'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="pl-10 h-11"
+                  required
+                  minLength={6}
+                  disabled={isSubmitting}
+                />
+              </div>
+            </div>
+
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            <Button
+              type="submit"
+              className="w-full h-11 font-medium"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {isSignIn ? 'Signing in...' : 'Creating account...'}
+                </>
+              ) : (
+                <>
+                  {isSignIn ? (
+                    'Sign In'
+                  ) : (
+                    <>
+                      <CheckCircle className="mr-2 h-4 w-4" />
+                      Create Account
+                    </>
+                  )}
+                </>
               )}
-              <Button type="submit" className="w-full h-11 font-medium" disabled={loading}>
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Sending...
-                  </>
-                ) : (
-                  'Send Magic Link'
-                )}
-              </Button>
-              <p className="text-xs text-center text-muted-foreground">
-                Passwordless sign in via email
-              </p>
-            </form>
-          )}
+            </Button>
+
+            <p className="text-xs text-center text-muted-foreground">
+              {isSignIn ? "Don't have an account?" : 'Already have an account?'}{' '}
+              <button
+                type="button"
+                onClick={toggleAuthMode}
+                className="text-primary font-medium hover:underline"
+                disabled={isSubmitting}
+              >
+                {isSignIn ? 'Create Account' : 'Sign In'}
+              </button>
+            </p>
+          </form>
         </CardContent>
       </Card>
     </div>
   )
 }
 
-export default App;
+export default App
