@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
-import { createAdminSupabase, getUserFromToken } from '@/lib/api-auth'
+import { getRequestAuth } from '@/lib/clerk-request'
+import * as repo from '@/lib/ya-repo'
 
 function cors(response) {
   response.headers.set('Access-Control-Allow-Origin', '*')
@@ -8,98 +9,71 @@ function cors(response) {
   return response
 }
 
-/**
- * GET /api/onboarding — Check if the authenticated user's email matches a profiles_core row.
- * Returns { found: true, ya_id } if a match exists (unlinked profile), or { found: false }.
- */
 export async function GET(request) {
-  const user = await getUserFromToken(request)
-  if (!user) return cors(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
-
-  const adminSupabase = createAdminSupabase()
+  const authCtx = await getRequestAuth()
+  if (!authCtx) return cors(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
 
   try {
-    const email = user.email
+    const email = authCtx.email
     if (!email) return cors(NextResponse.json({ found: false }))
 
-    const { data, error } = await adminSupabase
-      .from('profiles_core')
-      .select('id, ya_id, user_id')
-      .ilike('email', email)
-      .limit(1)
-      .maybeSingle()
-
-    if (error) {
-      return cors(NextResponse.json({ error: error.message }, { status: 500 }))
+    const data = await repo.onboardingLookupByEmail(email)
+    if (!data) {
+      return cors(NextResponse.json({ found: false }))
     }
 
-    if (data && !data.user_id) {
+    const linked = Boolean(data.user_id)
+    if (!linked) {
       return cors(NextResponse.json({ found: true, ya_id: data.ya_id }))
     }
-
-    if (data && data.user_id) {
-      return cors(NextResponse.json({ found: true, ya_id: data.ya_id, already_linked: true }))
-    }
-
-    return cors(NextResponse.json({ found: false }))
+    return cors(NextResponse.json({ found: true, ya_id: data.ya_id, already_linked: true }))
   } catch (err) {
     console.error('Onboarding lookup error:', err)
     return cors(NextResponse.json({ error: 'Internal server error' }, { status: 500 }))
   }
 }
 
-/**
- * POST /api/onboarding — Link the authenticated user to a profiles_core record by YA ID.
- * Body: { ya_id: string }
- * Verifies the YA ID exists and is unlinked, then sets user_id and email.
- */
 export async function POST(request) {
-  const user = await getUserFromToken(request)
-  if (!user) return cors(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
-
-  const adminSupabase = createAdminSupabase()
+  const authCtx = await getRequestAuth()
+  if (!authCtx) return cors(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
 
   try {
-    const { ya_id } = await request.json()
+    const body = await request.json()
+    const { ya_id, profession, highest_qualification } = body
     if (!ya_id || typeof ya_id !== 'string' || !ya_id.trim()) {
       return cors(NextResponse.json({ error: 'YA ID is required' }, { status: 400 }))
     }
 
     const trimmedId = ya_id.trim()
-
-    // Find the profile by YA ID
-    const { data: profile, error: findError } = await adminSupabase
-      .from('profiles_core')
-      .select('id, user_id, ya_id')
-      .ilike('ya_id', trimmedId)
-      .maybeSingle()
-
-    if (findError) {
-      return cors(NextResponse.json({ error: findError.message }, { status: 500 }))
-    }
-
+    const profile = await repo.findProfileByYaId(trimmedId)
     if (!profile) {
       return cors(NextResponse.json({ error: 'No profile found with this YA ID' }, { status: 404 }))
     }
 
-    if (profile.user_id && profile.user_id !== user.id) {
-      return cors(NextResponse.json({ error: 'This profile is already linked to another account' }, { status: 409 }))
+    if (profile.user_id && profile.user_id !== authCtx.userId) {
+      return cors(NextResponse.json(
+        { error: 'This profile is already linked to another account' },
+        { status: 409 }
+      ))
     }
 
-    if (profile.user_id === user.id) {
+    if (profile.user_id === authCtx.userId) {
+      await repo.ensureProfilesDataRowForUser(authCtx.userId)
+      await repo.patchProfilesData(authCtx.userId, {
+        profession: typeof profession === 'string' ? profession.trim() : undefined,
+        highest_qualification:
+          typeof highest_qualification === 'string' ? highest_qualification.trim() : undefined,
+      })
       return cors(NextResponse.json({ success: true, message: 'Already linked' }))
     }
 
-    // Link: set user_id and email on the profiles_core row
-    const { error: updateError } = await adminSupabase
-      .from('profiles_core')
-      .update({ user_id: user.id, email: user.email })
-      .eq('id', profile.id)
-
-    if (updateError) {
-      return cors(NextResponse.json({ error: updateError.message }, { status: 500 }))
-    }
-
+    await repo.onboardingLinkProfile(profile.id, authCtx.userId, authCtx.email)
+    await repo.ensureProfilesDataRowForUser(authCtx.userId)
+    await repo.patchProfilesData(authCtx.userId, {
+      profession: typeof profession === 'string' ? profession.trim() : undefined,
+      highest_qualification:
+        typeof highest_qualification === 'string' ? highest_qualification.trim() : undefined,
+    })
     return cors(NextResponse.json({ success: true }))
   } catch (err) {
     console.error('Onboarding link error:', err)

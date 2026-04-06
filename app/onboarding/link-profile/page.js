@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { useAuth } from '@clerk/nextjs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -19,9 +19,11 @@ import { toast } from 'sonner'
 
 export default function LinkProfilePage() {
   const router = useRouter()
-  const [session, setSession] = useState(null)
+  const { isLoaded, userId } = useAuth()
   const [loading, setLoading] = useState(true)
   const [yaId, setYaId] = useState('')
+  const [profession, setProfession] = useState('')
+  const [highestQualification, setHighestQualification] = useState('')
   const [autoFilled, setAutoFilled] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -29,17 +31,15 @@ export default function LinkProfilePage() {
 
   useEffect(() => {
     const init = async () => {
-      const { data: { session: s } } = await supabase.auth.getSession()
-      if (!s) {
-        router.push('/')
+      if (!isLoaded) return
+      if (!userId) {
+        router.push('/sign-in')
         return
       }
-      setSession(s)
 
-      // Check if email matches an existing unlinked profile
       try {
         const res = await fetch('/api/onboarding', {
-          headers: { Authorization: `Bearer ${s.access_token}` },
+          credentials: 'same-origin',
         })
         if (res.ok) {
           const data = await res.json()
@@ -59,22 +59,26 @@ export default function LinkProfilePage() {
       setLoading(false)
     }
     init()
-  }, [router])
+  }, [router, isLoaded, userId])
 
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault()
-    if (!session || !yaId.trim()) return
+    if (!userId || !yaId.trim()) return
     setSubmitting(true)
     setError('')
 
     try {
       const res = await fetch('/api/onboarding', {
         method: 'POST',
+        credentials: 'same-origin',
         headers: {
-          Authorization: `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ ya_id: yaId.trim() }),
+        body: JSON.stringify({
+          ya_id: yaId.trim(),
+          profession: profession.trim() || undefined,
+          highest_qualification: highestQualification.trim() || undefined,
+        }),
       })
 
       const data = await res.json()
@@ -92,7 +96,7 @@ export default function LinkProfilePage() {
       setError('Something went wrong. Please try again.')
       setSubmitting(false)
     }
-  }, [session, yaId, router])
+  }, [userId, yaId, profession, highestQualification, router])
 
   if (loading) {
     return (
@@ -163,6 +167,43 @@ export default function LinkProfilePage() {
               </div>
               <p className="text-[11px] text-muted-foreground">
                 Your YA ID was provided during volunteer registration
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="profession" className="text-sm font-medium">
+                Profession
+              </label>
+              <Input
+                id="profession"
+                type="text"
+                placeholder="e.g. Teacher, Engineer"
+                value={profession}
+                onChange={(e) => setProfession(e.target.value)}
+                className="h-11"
+                disabled={submitting}
+                autoComplete="organization-title"
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Saved to your volunteer profile (profiles_data.profession)
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="qualification" className="text-sm font-medium">
+                Highest qualification
+              </label>
+              <Input
+                id="qualification"
+                type="text"
+                placeholder="e.g. B.Tech, M.A."
+                value={highestQualification}
+                onChange={(e) => setHighestQualification(e.target.value)}
+                className="h-11"
+                disabled={submitting}
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Saved to profiles_data.highest_qualification
               </p>
             </div>
 

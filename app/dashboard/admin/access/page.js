@@ -192,7 +192,7 @@ function PromoteDialog({ open, onOpenChange, session, onSelect }) {
     queryFn: async () => {
       const res = await fetch(
         `/api/admin/access?type=search&q=${encodeURIComponent(debouncedSearch)}`,
-        { headers: { Authorization: `Bearer ${session.access_token}` } }
+        { credentials: 'same-origin' }
       )
       if (!res.ok) throw new Error('Search failed')
       return res.json()
@@ -504,8 +504,8 @@ function AccessControlSheet({
     try {
       const res = await fetch('/api/admin/access', {
         method: 'POST',
+        credentials: 'same-origin',
         headers: {
-          Authorization: `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -693,7 +693,7 @@ export default function AccessManagementPage() {
     queryKey: ['access-staff'],
     queryFn: async () => {
       const res = await fetch('/api/admin/access?type=staff', {
-        headers: { Authorization: `Bearer ${session.access_token}` },
+        credentials: 'same-origin',
       })
       if (!res.ok) throw new Error('Failed to fetch staff')
       return res.json()

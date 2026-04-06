@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
-import { createAdminSupabase, getUserFromToken, isAdmin } from '@/lib/api-auth'
+import { clerkClient } from '@clerk/nextjs/server'
+import { getRequestAuth } from '@/lib/clerk-request'
+import { isAdmin } from '@/lib/api-auth'
+import * as repo from '@/lib/ya-repo'
 
 function cors(response) {
   response.headers.set('Access-Control-Allow-Origin', '*')
@@ -9,12 +12,11 @@ function cors(response) {
 }
 
 export async function GET(request) {
-  const user = await getUserFromToken(request)
-  if (!user) return cors(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
-
-  const adminSupabase = createAdminSupabase()
-  const admin = await isAdmin(adminSupabase, user.id)
-  if (!admin) return cors(NextResponse.json({ error: 'Forbidden' }, { status: 403 }))
+  const authCtx = await getRequestAuth()
+  if (!authCtx) return cors(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
+  if (!(await isAdmin(authCtx.userId))) {
+    return cors(NextResponse.json({ error: 'Forbidden' }, { status: 403 }))
+  }
 
   const { searchParams } = new URL(request.url)
   const type = searchParams.get('type') || 'staff'
@@ -25,32 +27,11 @@ export async function GET(request) {
       if (!q || q.length < 2) {
         return cors(NextResponse.json({ data: [] }))
       }
-
-      const { data, error } = await adminSupabase
-        .from('profiles_core')
-        .select('id, user_id, full_name, ya_id, photo_url, role, accessible_modules')
-        .or(`full_name.ilike.%${q}%,ya_id.ilike.%${q}%`)
-        .order('full_name')
-        .limit(20)
-
-      if (error) {
-        return cors(NextResponse.json({ error: error.message }, { status: 500 }))
-      }
-
+      const data = await repo.accessSearchUsers(q)
       return cors(NextResponse.json({ data: data ?? [] }))
     }
 
-    // Default: active staff only (non-volunteer)
-    const { data, error } = await adminSupabase
-      .from('profiles_core')
-      .select('id, user_id, full_name, ya_id, photo_url, role, accessible_modules')
-      .neq('role', 'volunteer')
-      .order('full_name')
-
-    if (error) {
-      return cors(NextResponse.json({ error: error.message }, { status: 500 }))
-    }
-
+    const data = await repo.accessListStaff()
     return cors(NextResponse.json({ data: data ?? [] }))
   } catch (err) {
     console.error('Access list error:', err)
@@ -59,40 +40,43 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  const user = await getUserFromToken(request)
-  if (!user) return cors(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
-
-  const adminSupabase = createAdminSupabase()
-  const admin = await isAdmin(adminSupabase, user.id)
-  if (!admin) return cors(NextResponse.json({ error: 'Forbidden' }, { status: 403 }))
+  const authCtx = await getRequestAuth()
+  if (!authCtx) return cors(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
+  if (!(await isAdmin(authCtx.userId))) {
+    return cors(NextResponse.json({ error: 'Forbidden' }, { status: 403 }))
+  }
 
   try {
     const { target_user_id, role, accessible_modules } = await request.json()
-
     if (!target_user_id) {
       return cors(NextResponse.json({ error: 'target_user_id is required' }, { status: 400 }))
     }
 
-    const validRoles = ['admin', 'operations_manager', 'desk_moderator', 'attendance_scanner', 'custom', 'volunteer']
+    const validRoles = [
+      'admin', 'operations_manager', 'desk_moderator', 'attendance_scanner', 'custom', 'volunteer',
+    ]
     if (role && !validRoles.includes(role)) {
       return cors(NextResponse.json({ error: 'Invalid role' }, { status: 400 }))
     }
 
-    const updatePayload = {}
-    if (role) updatePayload.role = role
-    if (Array.isArray(accessible_modules)) updatePayload.accessible_modules = accessible_modules
-
-    if (Object.keys(updatePayload).length === 0) {
+    if (!role && !Array.isArray(accessible_modules)) {
       return cors(NextResponse.json({ error: 'Nothing to update' }, { status: 400 }))
     }
 
-    const { error } = await adminSupabase
-      .from('profiles_core')
-      .update(updatePayload)
-      .eq('user_id', target_user_id)
+    await repo.accessUpdateUser(target_user_id, role || null, accessible_modules)
 
-    if (error) {
-      return cors(NextResponse.json({ error: error.message }, { status: 500 }))
+    try {
+      const client = await clerkClient()
+      const existing = await client.users.getUser(target_user_id)
+      const prev =
+        existing.publicMetadata && typeof existing.publicMetadata === 'object'
+          ? { ...existing.publicMetadata }
+          : {}
+      if (role) prev.role = role
+      if (Array.isArray(accessible_modules)) prev.accessible_modules = accessible_modules
+      await client.users.updateUser(target_user_id, { publicMetadata: prev })
+    } catch (e) {
+      console.warn('Clerk publicMetadata mirror failed (user may need a new session):', e)
     }
 
     return cors(NextResponse.json({ success: true }))

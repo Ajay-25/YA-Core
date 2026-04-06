@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
-import { createAdminSupabase, getUserFromToken, canAccessDirectory } from '@/lib/api-auth'
+import { getRequestAuth } from '@/lib/clerk-request'
+import { canAccessDirectory } from '@/lib/api-auth'
+import * as repo from '@/lib/ya-repo'
 
 function cors(response) {
   response.headers.set('Access-Control-Allow-Origin', '*')
@@ -9,42 +11,29 @@ function cors(response) {
 }
 
 export async function GET(request, { params }) {
-  const user = await getUserFromToken(request)
-  if (!user) return cors(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
-
-  const adminSupabase = createAdminSupabase()
-  if (!(await canAccessDirectory(adminSupabase, user.id))) {
-    return cors(NextResponse.json({ error: 'Unauthorized: Missing directory:view permission' }, { status: 403 }))
+  const authCtx = await getRequestAuth()
+  if (!authCtx) return cors(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
+  if (!(await canAccessDirectory(authCtx.userId))) {
+    return cors(NextResponse.json(
+      { error: 'Unauthorized: Missing directory:view permission' },
+      { status: 403 }
+    ))
   }
 
-  const paramId = params?.id
+  const resolved = await params
+  const paramId = resolved?.id
   if (!paramId) return cors(NextResponse.json({ error: 'ID required' }, { status: 400 }))
 
   try {
-    const coreById = await adminSupabase.from('profiles_core').select('*').eq('id', paramId).single()
-    const coreByUserId = coreById.data
-      ? null
-      : await adminSupabase.from('profiles_core').select('*').eq('user_id', paramId).single()
-    const coreRes = coreById.data ? coreById : coreByUserId
-
-    if (!coreRes.data) {
+    const bundle = await repo.getVolunteerDetailByParam(paramId)
+    if (!bundle) {
       return cors(NextResponse.json({ error: 'Profile not found' }, { status: 404 }))
     }
-
-    const userId = coreRes.data.user_id
-    const profileId = coreRes.data.id
-
-    const [dataRes, sensitiveRes, inventoryRes] = await Promise.all([
-      adminSupabase.from('profiles_data').select('*').eq('user_id', userId).single(),
-      adminSupabase.from('profiles_sensitive').select('*').eq('user_id', userId).single(),
-      adminSupabase.from('inventory_logs').select('*, inventory_items(item_name, variant)').eq('volunteer_id', profileId).order('created_at', { ascending: false }),
-    ])
-
     return cors(NextResponse.json({
-      core: coreRes.data,
-      data: dataRes.data,
-      sensitive: sensitiveRes.data,
-      inventory: inventoryRes.data || [],
+      core: bundle.core,
+      data: bundle.data,
+      sensitive: bundle.sensitive,
+      inventory: bundle.inventory,
     }))
   } catch (err) {
     console.error('Volunteer detail error:', err)

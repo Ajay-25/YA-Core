@@ -138,7 +138,7 @@ function VolunteerMasterList({ session, onSelectVolunteer, canEdit }) {
         pageSize: PAGE_SIZE.toString(),
       })
       const res = await fetch(`/api/admin/volunteers?${params}`, {
-        headers: { 'Authorization': `Bearer ${session.access_token}` },
+        credentials: 'same-origin',
       })
       if (!res.ok) throw new Error('Failed to fetch volunteers')
       return res.json()
@@ -387,8 +387,8 @@ function VolunteerDetailSheet({
     try {
       const res = await fetch('/api/admin/volunteer-update', {
         method: 'POST',
+        credentials: 'same-origin',
         headers: {
-          Authorization: `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({

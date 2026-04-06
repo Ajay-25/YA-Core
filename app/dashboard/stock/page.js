@@ -96,7 +96,7 @@ function IssueItemTab({ session }) {
     queryKey: ['inventory-items'],
     queryFn: async () => {
       const res = await fetch('/api/admin/inventory/items', {
-        headers: { 'Authorization': `Bearer ${session.access_token}` },
+        credentials: 'same-origin',
       })
       if (!res.ok) throw new Error('Failed to fetch items')
       return res.json()
@@ -109,7 +109,7 @@ function IssueItemTab({ session }) {
     queryFn: async () => {
       const res = await fetch(
         `/api/admin/inventory/volunteers/search?q=${encodeURIComponent(searchQuery)}`,
-        { headers: { 'Authorization': `Bearer ${session.access_token}` } }
+        { credentials: 'same-origin' }
       )
       if (!res.ok) throw new Error('Search failed')
       return res.json()
@@ -122,7 +122,7 @@ function IssueItemTab({ session }) {
     queryFn: async () => {
       const res = await fetch(
         `/api/admin/inventory/volunteers/${selectedVolunteer.user_id}/logs`,
-        { headers: { 'Authorization': `Bearer ${session.access_token}` } }
+        { credentials: 'same-origin' }
       )
       if (!res.ok) return { hasIssued: false }
       return res.json()
@@ -135,7 +135,7 @@ function IssueItemTab({ session }) {
     queryFn: async () => {
       const res = await fetch(
         `/api/admin/inventory/volunteers/${selectedVolunteer.user_id}/history`,
-        { headers: { 'Authorization': `Bearer ${session.access_token}` } }
+        { credentials: 'same-origin' }
       )
       if (!res.ok) return { data: [] }
       return res.json()
@@ -174,8 +174,8 @@ function IssueItemTab({ session }) {
     try {
       const res = await fetch('/api/admin/inventory/issue', {
         method: 'POST',
+        credentials: 'same-origin',
         headers: {
-          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -529,7 +529,7 @@ function WarehouseTab({ session, canManageStock }) {
     queryKey: ['inventory-items'],
     queryFn: async () => {
       const res = await fetch('/api/admin/inventory/items', {
-        headers: { 'Authorization': `Bearer ${session.access_token}` },
+        credentials: 'same-origin',
       })
       if (!res.ok) throw new Error('Failed to fetch items')
       return res.json()
@@ -541,7 +541,7 @@ function WarehouseTab({ session, canManageStock }) {
     queryKey: ['inventory-logs'],
     queryFn: async () => {
       const res = await fetch('/api/admin/inventory/logs?limit=50', {
-        headers: { 'Authorization': `Bearer ${session.access_token}` },
+        credentials: 'same-origin',
       })
       if (!res.ok) throw new Error('Failed to fetch logs')
       return res.json()
@@ -554,7 +554,7 @@ function WarehouseTab({ session, canManageStock }) {
     queryFn: async () => {
       const res = await fetch(
         `/api/admin/inventory/audit?item_id=${encodeURIComponent(auditItem.id)}`,
-        { headers: { 'Authorization': `Bearer ${session.access_token}` } }
+        { credentials: 'same-origin' }
       )
       if (!res.ok) throw new Error('Failed to fetch audit history')
       return res.json()
@@ -584,8 +584,8 @@ function WarehouseTab({ session, canManageStock }) {
     mutationFn: async (logId) => {
       const res = await fetch('/api/admin/inventory/undo', {
         method: 'POST',
+        credentials: 'same-origin',
         headers: {
-          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ log_id: logId }),
@@ -632,8 +632,8 @@ function WarehouseTab({ session, canManageStock }) {
     mutationFn: async ({ item_id, quantity_added, notes }) => {
       const res = await fetch('/api/admin/inventory/adjust', {
         method: 'POST',
+        credentials: 'same-origin',
         headers: {
-          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ item_id, quantity_added, notes }),
@@ -1067,7 +1067,11 @@ function WarehouseTab({ session, canManageStock }) {
 export default function StockPage() {
   const { session, role, accessibleModules } = useDashboard()
   const [activeTab, setActiveTab] = useState('issue')
-  const canManageStock = role === 'admin' || (Array.isArray(accessibleModules) && accessibleModules.includes('stock_manage'))
+  const canManageStock =
+    role === 'admin' ||
+    (Array.isArray(accessibleModules) &&
+      (accessibleModules.includes('stock:manage') ||
+        accessibleModules.includes('stock_manage')))
 
   return (
     <div className="p-4 pb-6">

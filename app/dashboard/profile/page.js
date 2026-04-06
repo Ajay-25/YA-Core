@@ -153,8 +153,8 @@ export default function ProfilePage() {
     try {
       const res = await fetch('/api/profile/update', {
         method: 'POST',
+        credentials: 'same-origin',
         headers: {
-          Authorization: `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
