@@ -17,9 +17,7 @@ export default function AttendancePage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="text-center">
-          <p className="text-sm text-muted-foreground">
-            This module is coming soon.
-          </p>
+          <p className="text-sm text-muted-foreground">This module is coming soon.</p>
         </CardContent>
       </Card>
     </div>

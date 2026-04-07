@@ -49,24 +49,32 @@ const sectionIcons = {
   'Permanent Address': <MapPin className="h-3.5 w-3.5 text-orange-500" />,
   'Communication Address': <MapPin className="h-3.5 w-3.5 text-blue-500" />,
   'Center & Zone': <Shield className="h-3.5 w-3.5 text-teal-500" />,
-  'Initiation': <Heart className="h-3.5 w-3.5 text-red-500" />,
+  Initiation: <Heart className="h-3.5 w-3.5 text-red-500" />,
   'Sewa Areas - Permanent': <MapPin className="h-3.5 w-3.5 text-green-500" />,
   'Sewa Areas - Current': <MapPin className="h-3.5 w-3.5 text-cyan-500" />,
-  'Qualification': <FileText className="h-3.5 w-3.5 text-indigo-500" />,
-  'Profession': <Briefcase className="h-3.5 w-3.5 text-amber-500" />,
+  Qualification: <FileText className="h-3.5 w-3.5 text-indigo-500" />,
+  Profession: <Briefcase className="h-3.5 w-3.5 text-amber-500" />,
   'I-Card & Uniform': <Package className="h-3.5 w-3.5 text-purple-500" />,
-  'Orientation': <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />,
-  'Status': <BarChart3 className="h-3.5 w-3.5 text-blue-500" />,
+  Orientation: <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />,
+  Status: <BarChart3 className="h-3.5 w-3.5 text-blue-500" />,
   'Digital & Apps': <Phone className="h-3.5 w-3.5 text-pink-500" />,
-  'Preferences': <Heart className="h-3.5 w-3.5 text-rose-500" />,
+  Preferences: <Heart className="h-3.5 w-3.5 text-rose-500" />,
   'Data Metadata': <FileText className="h-3.5 w-3.5 text-gray-500" />,
   'ID Proof': <FileText className="h-3.5 w-3.5 text-blue-500" />,
-  'Admin': <UserCog className="h-3.5 w-3.5 text-red-500" />,
+  Admin: <UserCog className="h-3.5 w-3.5 text-red-500" />,
 }
 
 function getInitials(name) {
   if (!name || typeof name !== 'string') return '?'
-  return name.trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase() || '?'
+  return (
+    name
+      .trim()
+      .split(/\s+/)
+      .map((w) => w[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase() || '?'
+  )
 }
 
 function useSheetSide() {
@@ -158,7 +166,10 @@ function VolunteerMasterList({ session, onSelectVolunteer, canEdit }) {
           <Input
             placeholder="Search by Name or YA ID..."
             value={searchInput}
-            onChange={(e) => { setSearchInput(e.target.value); setPage(0) }}
+            onChange={(e) => {
+              setSearchInput(e.target.value)
+              setPage(0)
+            }}
             className="pl-10 h-11"
           />
         </div>
@@ -200,7 +211,8 @@ function VolunteerMasterList({ session, onSelectVolunteer, canEdit }) {
             const gender = pd?.gender || '--'
             const center = pd?.sewa_center || '--'
             const zone = pd?.sewa_zone || '--'
-            const pillClass = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-muted text-muted-foreground text-[11px] font-medium'
+            const pillClass =
+              'inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-muted text-muted-foreground text-[11px] font-medium'
             return (
               <Card
                 key={vol.id}
@@ -221,7 +233,10 @@ function VolunteerMasterList({ session, onSelectVolunteer, canEdit }) {
                           {vol.full_name || 'Unnamed'}
                         </span>
                         {vol.ya_id && (
-                          <Badge variant="secondary" className="flex-shrink-0 text-[10px] font-mono">
+                          <Badge
+                            variant="secondary"
+                            className="flex-shrink-0 text-[10px] font-mono"
+                          >
                             {vol.ya_id}
                           </Badge>
                         )}
@@ -279,7 +294,9 @@ function VolunteerMasterList({ session, onSelectVolunteer, canEdit }) {
 /** Normalize list item or API detail to { core, data } for the sheet. Handles Supabase returning profiles_data as object or single-element array. */
 function toSheetVolunteer(selected) {
   if (!selected) return null
-  const data = Array.isArray(selected.profiles_data) ? selected.profiles_data[0] : selected.profiles_data
+  const data = Array.isArray(selected.profiles_data)
+    ? selected.profiles_data[0]
+    : selected.profiles_data
   const { profiles_data: _pd, ...core } = selected
   return { core: core || {}, data: data || {} }
 }
@@ -330,8 +347,7 @@ function VolunteerDetailSheet({
 
   const handleSave = useCallback(async () => {
     const previous = selectedVolunteer
-    const targetUserId =
-      volunteer?.core?.user_id ?? selectedVolunteer?.user_id ?? formData.user_id
+    const targetUserId = volunteer?.core?.user_id ?? selectedVolunteer?.user_id ?? formData.user_id
     if (!targetUserId) {
       console.warn(
         '[VolunteerDetailSheet] Missing target_user_id: volunteer.core.user_id and selectedVolunteer.user_id are missing. Cannot save.'
@@ -376,7 +392,13 @@ function VolunteerDetailSheet({
         ...old,
         data: old.data.map((v) =>
           (v.user_id ?? v.id) === targetUserId
-            ? { ...v, full_name: optimisticCore.full_name, ya_id: optimisticCore.ya_id, photo_url: optimisticCore.photo_url ?? v.photo_url, profiles_data: optimisticData }
+            ? {
+                ...v,
+                full_name: optimisticCore.full_name,
+                ya_id: optimisticCore.ya_id,
+                photo_url: optimisticCore.photo_url ?? v.photo_url,
+                profiles_data: optimisticData,
+              }
             : v
         ),
       }
@@ -447,7 +469,11 @@ function VolunteerDetailSheet({
               <SheetTitle>Edit Volunteer: {displayName}</SheetTitle>
             </SheetHeader>
             <div className="flex-1 flex flex-col min-h-0">
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
+              <Tabs
+                value={activeTab}
+                onValueChange={setActiveTab}
+                className="flex-1 flex flex-col min-h-0"
+              >
                 <div className="sticky top-0 z-10 bg-background border-b shrink-0 px-4 pt-2 pb-2 -mx-4 px-4">
                   <div className="overflow-x-auto -mx-2 px-2">
                     <TabsList className="inline-flex w-auto min-w-full h-9">
@@ -468,7 +494,11 @@ function VolunteerDetailSheet({
                     const sections = groupBySection(tab.fields)
                     const hasSections = Object.keys(sections).some((s) => s !== 'General')
                     return (
-                      <TabsContent key={tab.id} value={tab.id} className="mt-0 space-y-4 data-[state=inactive]:hidden">
+                      <TabsContent
+                        key={tab.id}
+                        value={tab.id}
+                        className="mt-0 space-y-4 data-[state=inactive]:hidden"
+                      >
                         {hasSections ? (
                           Object.entries(sections).map(([section, fields]) => (
                             <FieldGroup
@@ -510,11 +540,7 @@ function VolunteerDetailSheet({
               >
                 Cancel
               </Button>
-              <Button
-                className="h-12 flex-1 font-medium"
-                disabled={saving}
-                onClick={handleSave}
-              >
+              <Button className="h-12 flex-1 font-medium" disabled={saving} onClick={handleSave}>
                 {saving ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
@@ -548,8 +574,8 @@ function VolunteerDetailSheet({
                     )}
                   </div>
                 </div>
-                {canEdit && (
-                  sheetSide === 'right' ? (
+                {canEdit &&
+                  (sheetSide === 'right' ? (
                     <Button
                       type="button"
                       variant="outline"
@@ -571,160 +597,203 @@ function VolunteerDetailSheet({
                     >
                       <Pencil className="h-4 w-4" />
                     </Button>
-                  )
-                )}
+                  ))}
               </div>
             </SheetHeader>
 
             <div className="flex-1 overflow-y-auto px-4 py-4 min-h-0">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 h-10 mb-4">
-                    <TabsTrigger value="personal" className="gap-1.5 text-xs">
-                      <User className="h-3.5 w-3.5" />
-                      Personal Info
-                    </TabsTrigger>
-                    <TabsTrigger value="sewa" className="gap-1.5 text-xs">
-                      <MapPin className="h-3.5 w-3.5" />
-                      Sewa Details
-                    </TabsTrigger>
-                  </TabsList>
+                <TabsList className="grid w-full grid-cols-2 h-10 mb-4">
+                  <TabsTrigger value="personal" className="gap-1.5 text-xs">
+                    <User className="h-3.5 w-3.5" />
+                    Personal Info
+                  </TabsTrigger>
+                  <TabsTrigger value="sewa" className="gap-1.5 text-xs">
+                    <MapPin className="h-3.5 w-3.5" />
+                    Sewa Details
+                  </TabsTrigger>
+                </TabsList>
 
-                  <TabsContent value="personal" className="mt-0">
-                    <Card>
-                      <CardContent className="pt-4 pb-4">
+                <TabsContent value="personal" className="mt-0">
+                  <Card>
+                    <CardContent className="pt-4 pb-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="flex items-start gap-3">
+                          <Phone className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
+                          <div className="min-w-0">
+                            <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                              Contact Number
+                            </p>
+                            <p className="text-sm font-medium">{data.contact_number || '--'}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                          <Mail className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
+                          <div className="min-w-0">
+                            <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                              Email
+                            </p>
+                            <p className="text-sm font-medium">{data.email_id || '--'}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                          <User className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
+                          <div className="min-w-0">
+                            <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                              Gender
+                            </p>
+                            <p className="text-sm font-medium">{data.gender || '--'}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                          <CalendarDays className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
+                          <div className="min-w-0">
+                            <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                              Date of Birth
+                            </p>
+                            <p className="text-sm font-medium">{data.date_of_birth || '--'}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                          <Hash className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
+                          <div className="min-w-0">
+                            <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                              Age
+                            </p>
+                            <p className="text-sm font-medium">
+                              {data.age != null && data.age !== '' ? String(data.age) : '--'}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-3 md:col-span-2">
+                          <MapPin className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
+                          <div className="min-w-0">
+                            <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                              Address
+                            </p>
+                            <p className="text-sm font-medium break-words">
+                              {data.permanent_address || '--'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="sewa" className="mt-0">
+                  <Card>
+                    <CardContent className="pt-4 pb-4 space-y-6">
+                      <section>
+                        <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wider">
+                          Sewa Details
+                        </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="flex items-start gap-3">
-                            <Phone className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
-                            <div className="min-w-0">
-                              <p className="text-xs text-muted-foreground uppercase tracking-wider">Contact Number</p>
-                              <p className="text-sm font-medium">{data.contact_number || '--'}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-start gap-3">
-                            <Mail className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
-                            <div className="min-w-0">
-                              <p className="text-xs text-muted-foreground uppercase tracking-wider">Email</p>
-                              <p className="text-sm font-medium">{data.email_id || '--'}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-start gap-3">
-                            <User className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
-                            <div className="min-w-0">
-                              <p className="text-xs text-muted-foreground uppercase tracking-wider">Gender</p>
-                              <p className="text-sm font-medium">{data.gender || '--'}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-start gap-3">
-                            <CalendarDays className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
-                            <div className="min-w-0">
-                              <p className="text-xs text-muted-foreground uppercase tracking-wider">Date of Birth</p>
-                              <p className="text-sm font-medium">{data.date_of_birth || '--'}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-start gap-3">
-                            <Hash className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
-                            <div className="min-w-0">
-                              <p className="text-xs text-muted-foreground uppercase tracking-wider">Age</p>
-                              <p className="text-sm font-medium">{data.age != null && data.age !== '' ? String(data.age) : '--'}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-start gap-3 md:col-span-2">
                             <MapPin className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
                             <div className="min-w-0">
-                              <p className="text-xs text-muted-foreground uppercase tracking-wider">Address</p>
-                              <p className="text-sm font-medium break-words">{data.permanent_address || '--'}</p>
+                              <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                                Sewa Centre
+                              </p>
+                              <p className="text-sm font-medium">{data.sewa_center || '--'}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-3">
+                            <Map className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
+                            <div className="min-w-0">
+                              <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                                Sewa Zone
+                              </p>
+                              <p className="text-sm font-medium">{data.sewa_zone || '--'}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-3">
+                            <HeartHandshake className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
+                            <div className="min-w-0">
+                              <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                                Primary Sewa (Current)
+                              </p>
+                              <p className="text-sm font-medium">
+                                {data.primary_sewa_current || '--'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-3">
+                            <Briefcase className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
+                            <div className="min-w-0">
+                              <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                                Primary Sewa (Permanent)
+                              </p>
+                              <p className="text-sm font-medium">
+                                {data.primary_sewa_permanent || '--'}
+                              </p>
                             </div>
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-
-                  <TabsContent value="sewa" className="mt-0">
-                    <Card>
-                      <CardContent className="pt-4 pb-4 space-y-6">
-                        <section>
-                          <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wider">
-                            Sewa Details
-                          </h3>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="flex items-start gap-3">
-                              <MapPin className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
-                              <div className="min-w-0">
-                                <p className="text-xs text-muted-foreground uppercase tracking-wider">Sewa Centre</p>
-                                <p className="text-sm font-medium">{data.sewa_center || '--'}</p>
-                              </div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                              <Map className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
-                              <div className="min-w-0">
-                                <p className="text-xs text-muted-foreground uppercase tracking-wider">Sewa Zone</p>
-                                <p className="text-sm font-medium">{data.sewa_zone || '--'}</p>
-                              </div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                              <HeartHandshake className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
-                              <div className="min-w-0">
-                                <p className="text-xs text-muted-foreground uppercase tracking-wider">Primary Sewa (Current)</p>
-                                <p className="text-sm font-medium">{data.primary_sewa_current || '--'}</p>
-                              </div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                              <Briefcase className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
-                              <div className="min-w-0">
-                                <p className="text-xs text-muted-foreground uppercase tracking-wider">Primary Sewa (Permanent)</p>
-                                <p className="text-sm font-medium">{data.primary_sewa_permanent || '--'}</p>
-                              </div>
+                      </section>
+                      <Separator className="my-4" />
+                      <section>
+                        <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wider">
+                          YA Details
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="flex items-start gap-3">
+                            <IdCard className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
+                            <div className="min-w-0">
+                              <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                                Permanent I-Card Status
+                              </p>
+                              <p className="text-sm font-medium">
+                                {data.permanent_icard_status || '--'}
+                              </p>
                             </div>
                           </div>
-                        </section>
-                        <Separator className="my-4" />
-                        <section>
-                          <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wider">
-                            YA Details
-                          </h3>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="flex items-start gap-3">
-                              <IdCard className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
-                              <div className="min-w-0">
-                                <p className="text-xs text-muted-foreground uppercase tracking-wider">Permanent I-Card Status</p>
-                                <p className="text-sm font-medium">{data.permanent_icard_status || '--'}</p>
-                              </div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                              <Shirt className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
-                              <div className="min-w-0">
-                                <p className="text-xs text-muted-foreground uppercase tracking-wider">Uniform</p>
-                                <p className="text-sm font-medium">{data.uniform || '--'}</p>
-                              </div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                              <CalendarPlus className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
-                              <div className="min-w-0">
-                                <p className="text-xs text-muted-foreground uppercase tracking-wider">Date of Joining / Orientation</p>
-                                <p className="text-sm font-medium">{data.date_of_joining || '--'}</p>
-                              </div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                              <Clock className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
-                              <div className="min-w-0">
-                                <p className="text-xs text-muted-foreground uppercase tracking-wider">Years in YA</p>
-                                <p className="text-sm font-medium">{data.years_in_ya != null && data.years_in_ya !== '' ? String(data.years_in_ya) : '--'}</p>
-                              </div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                              <Activity className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
-                              <div className="min-w-0">
-                                <p className="text-xs text-muted-foreground uppercase tracking-wider">Active Status</p>
-                                <p className="text-sm font-medium">{data.active_status || '--'}</p>
-                              </div>
+                          <div className="flex items-start gap-3">
+                            <Shirt className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
+                            <div className="min-w-0">
+                              <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                                Uniform
+                              </p>
+                              <p className="text-sm font-medium">{data.uniform || '--'}</p>
                             </div>
                           </div>
-                        </section>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-                </Tabs>
+                          <div className="flex items-start gap-3">
+                            <CalendarPlus className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
+                            <div className="min-w-0">
+                              <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                                Date of Joining / Orientation
+                              </p>
+                              <p className="text-sm font-medium">{data.date_of_joining || '--'}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-3">
+                            <Clock className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
+                            <div className="min-w-0">
+                              <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                                Years in YA
+                              </p>
+                              <p className="text-sm font-medium">
+                                {data.years_in_ya != null && data.years_in_ya !== ''
+                                  ? String(data.years_in_ya)
+                                  : '--'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-3">
+                            <Activity className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
+                            <div className="min-w-0">
+                              <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                                Active Status
+                              </p>
+                              <p className="text-sm font-medium">{data.active_status || '--'}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </section>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
             </div>
             <div className="shrink-0 px-4 pb-4 pt-2 border-t bg-background">
               <Button
@@ -759,7 +828,9 @@ export default function VolunteersPage() {
   const canEdit =
     role === 'admin' ||
     (Array.isArray(modules) &&
-      (modules.includes('profile_edit') || modules.includes('directory:edit') || modules.includes('directory_edit')))
+      (modules.includes('profile_edit') ||
+        modules.includes('directory:edit') ||
+        modules.includes('directory_edit')))
 
   const handleSelect = useCallback((vol) => {
     setSelectedVolunteer(vol)
@@ -775,17 +846,11 @@ export default function VolunteersPage() {
     <div className="p-4 pb-6 flex flex-col">
       <div className="shrink-0 mb-3">
         <h2 className="text-lg font-bold">Volunteers</h2>
-        <p className="text-xs text-muted-foreground">
-          Search and view volunteer profiles
-        </p>
+        <p className="text-xs text-muted-foreground">Search and view volunteer profiles</p>
       </div>
 
       <div className="flex flex-col max-h-[calc(100vh-14rem)] min-h-[320px]">
-        <VolunteerMasterList
-          session={session}
-          onSelectVolunteer={handleSelect}
-          canEdit={canEdit}
-        />
+        <VolunteerMasterList session={session} onSelectVolunteer={handleSelect} canEdit={canEdit} />
       </div>
 
       <VolunteerDetailSheet

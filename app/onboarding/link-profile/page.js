@@ -7,14 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import {
-  Loader2,
-  Link2,
-  CheckCircle,
-  AlertCircle,
-  Info,
-  Shield,
-} from 'lucide-react'
+import { Loader2, Link2, CheckCircle, AlertCircle, Info, Shield } from 'lucide-react'
 import { toast } from 'sonner'
 
 export default function LinkProfilePage() {
@@ -61,42 +54,45 @@ export default function LinkProfilePage() {
     init()
   }, [router, isLoaded, userId])
 
-  const handleSubmit = useCallback(async (e) => {
-    e.preventDefault()
-    if (!userId || !yaId.trim()) return
-    setSubmitting(true)
-    setError('')
+  const handleSubmit = useCallback(
+    async (e) => {
+      e.preventDefault()
+      if (!userId || !yaId.trim()) return
+      setSubmitting(true)
+      setError('')
 
-    try {
-      const res = await fetch('/api/onboarding', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ya_id: yaId.trim(),
-          profession: profession.trim() || undefined,
-          highest_qualification: highestQualification.trim() || undefined,
-        }),
-      })
+      try {
+        const res = await fetch('/api/onboarding', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ya_id: yaId.trim(),
+            profession: profession.trim() || undefined,
+            highest_qualification: highestQualification.trim() || undefined,
+          }),
+        })
 
-      const data = await res.json()
+        const data = await res.json()
 
-      if (!res.ok) {
-        setError(data.error || 'Failed to link profile')
+        if (!res.ok) {
+          setError(data.error || 'Failed to link profile')
+          setSubmitting(false)
+          return
+        }
+
+        setLinked(true)
+        toast.success('Profile linked successfully!')
+        setTimeout(() => router.push('/dashboard'), 1500)
+      } catch {
+        setError('Something went wrong. Please try again.')
         setSubmitting(false)
-        return
       }
-
-      setLinked(true)
-      toast.success('Profile linked successfully!')
-      setTimeout(() => router.push('/dashboard'), 1500)
-    } catch {
-      setError('Something went wrong. Please try again.')
-      setSubmitting(false)
-    }
-  }, [userId, yaId, profession, highestQualification, router])
+    },
+    [userId, yaId, profession, highestQualification, router]
+  )
 
   if (loading) {
     return (

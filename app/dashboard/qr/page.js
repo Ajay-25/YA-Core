@@ -32,17 +32,13 @@ export default function QRPage() {
             )}
           </div>
           <div className="text-center">
-            <p className="font-semibold text-lg">
-              {profileCore?.full_name || 'Volunteer'}
-            </p>
+            <p className="font-semibold text-lg">{profileCore?.full_name || 'Volunteer'}</p>
             {profileCore?.ya_id && (
               <Badge variant="secondary" className="mt-1">
                 {profileCore.ya_id}
               </Badge>
             )}
-            <p className="text-xs text-muted-foreground font-mono mt-2">
-              {user?.id}
-            </p>
+            <p className="text-xs text-muted-foreground font-mono mt-2">{user?.id}</p>
           </div>
         </CardContent>
       </Card>

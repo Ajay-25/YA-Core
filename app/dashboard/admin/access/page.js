@@ -18,12 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import {
   Command,
   CommandInput,
@@ -55,7 +50,15 @@ import { toast } from 'sonner'
 
 function getInitials(name) {
   if (!name || typeof name !== 'string') return '?'
-  return name.trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase() || '?'
+  return (
+    name
+      .trim()
+      .split(/\s+/)
+      .map((w) => w[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase() || '?'
+  )
 }
 
 function useSheetSide() {
@@ -91,15 +94,22 @@ function formatRoleLabel(role) {
 
 const ROLE_PRESETS = {
   admin: [
-    'stock:manage', 'stock:issue',
-    'directory:view', 'directory:edit',
-    'attendance:mark', 'attendance_log:view', 'attendance_log:manage',
+    'stock:manage',
+    'stock:issue',
+    'directory:view',
+    'directory:edit',
+    'attendance:mark',
+    'attendance_log:view',
+    'attendance_log:manage',
     'system:manage_access',
   ],
   operations_manager: [
-    'stock:manage', 'stock:issue',
-    'directory:edit', 'directory:view',
-    'attendance_log:manage', 'attendance_log:view',
+    'stock:manage',
+    'stock:issue',
+    'directory:edit',
+    'directory:view',
+    'attendance_log:manage',
+    'attendance_log:view',
     'attendance:mark',
   ],
   desk_moderator: ['stock:issue', 'directory:view', 'attendance:mark'],
@@ -130,39 +140,69 @@ const PERMISSION_GROUPS = [
     category: 'Stock',
     icon: Package,
     permissions: [
-      { key: 'stock:manage', label: 'Manage Stock', description: 'Add, adjust, and audit inventory levels' },
-      { key: 'stock:issue', label: 'Issue Items', description: 'Issue items to volunteers from inventory' },
+      {
+        key: 'stock:manage',
+        label: 'Manage Stock',
+        description: 'Add, adjust, and audit inventory levels',
+      },
+      {
+        key: 'stock:issue',
+        label: 'Issue Items',
+        description: 'Issue items to volunteers from inventory',
+      },
     ],
   },
   {
     category: 'Directory',
     icon: Users,
     permissions: [
-      { key: 'directory:view', label: 'View Directory', description: 'Browse and search volunteer profiles' },
-      { key: 'directory:edit', label: 'Edit Profiles', description: 'Edit volunteer profile information' },
+      {
+        key: 'directory:view',
+        label: 'View Directory',
+        description: 'Browse and search volunteer profiles',
+      },
+      {
+        key: 'directory:edit',
+        label: 'Edit Profiles',
+        description: 'Edit volunteer profile information',
+      },
     ],
   },
   {
     category: 'Attendance',
     icon: ClipboardCheck,
     permissions: [
-      { key: 'attendance:mark', label: 'Mark Attendance', description: 'Scan QR or mark volunteers present' },
-      { key: 'attendance_log:view', label: 'View Logs', description: 'View attendance history and reports' },
-      { key: 'attendance_log:manage', label: 'Manage Logs', description: 'Edit or delete attendance records' },
+      {
+        key: 'attendance:mark',
+        label: 'Mark Attendance',
+        description: 'Scan QR or mark volunteers present',
+      },
+      {
+        key: 'attendance_log:view',
+        label: 'View Logs',
+        description: 'View attendance history and reports',
+      },
+      {
+        key: 'attendance_log:manage',
+        label: 'Manage Logs',
+        description: 'Edit or delete attendance records',
+      },
     ],
   },
   {
     category: 'System',
     icon: Settings,
     permissions: [
-      { key: 'system:manage_access', label: 'Manage Access', description: 'Grant or revoke roles and permissions' },
+      {
+        key: 'system:manage_access',
+        label: 'Manage Access',
+        description: 'Grant or revoke roles and permissions',
+      },
     ],
   },
 ]
 
-const ALL_PERMISSION_KEYS = PERMISSION_GROUPS.flatMap((g) =>
-  g.permissions.map((p) => p.key)
-)
+const ALL_PERMISSION_KEYS = PERMISSION_GROUPS.flatMap((g) => g.permissions.map((p) => p.key))
 
 /** Determine which preset matches a given module set, or 'custom'. */
 function detectRole(modules) {
@@ -170,10 +210,7 @@ function detectRole(modules) {
   for (const [role, preset] of Object.entries(ROLE_PRESETS)) {
     if (role === 'volunteer' || role === 'custom') continue
     const presetSorted = [...preset].sort()
-    if (
-      sorted.length === presetSorted.length &&
-      sorted.every((m, i) => m === presetSorted[i])
-    ) {
+    if (sorted.length === presetSorted.length && sorted.every((m, i) => m === presetSorted[i])) {
       return role
     }
   }
@@ -285,9 +322,7 @@ function StaffMasterList({ users, isLoading, onSelectUser }) {
     if (!searchInput.trim()) return users
     const q = searchInput.toLowerCase()
     return users.filter(
-      (u) =>
-        u.full_name?.toLowerCase().includes(q) ||
-        u.ya_id?.toLowerCase().includes(q)
+      (u) => u.full_name?.toLowerCase().includes(q) || u.ya_id?.toLowerCase().includes(q)
     )
   }, [users, searchInput])
 
@@ -342,7 +377,8 @@ function StaffMasterList({ users, isLoading, onSelectUser }) {
             const role = u.role || 'volunteer'
             const modules = u.accessible_modules || []
             const moduleCount = modules.length
-            const pillClass = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-muted text-muted-foreground text-[11px] font-medium'
+            const pillClass =
+              'inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-muted text-muted-foreground text-[11px] font-medium'
             return (
               <Card
                 key={u.id}
@@ -363,13 +399,18 @@ function StaffMasterList({ users, isLoading, onSelectUser }) {
                           {u.full_name || 'Unnamed'}
                         </span>
                         {u.ya_id && (
-                          <Badge variant="secondary" className="flex-shrink-0 text-[10px] font-mono">
+                          <Badge
+                            variant="secondary"
+                            className="flex-shrink-0 text-[10px] font-mono"
+                          >
                             {u.ya_id}
                           </Badge>
                         )}
                       </div>
                       <div className="flex flex-wrap items-center gap-1.5">
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium ${ROLE_COLORS[role] || ROLE_COLORS.custom}`}>
+                        <span
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium ${ROLE_COLORS[role] || ROLE_COLORS.custom}`}
+                        >
                           <Shield className="h-3 w-3 shrink-0" />
                           {formatRoleLabel(role)}
                         </span>
@@ -394,13 +435,7 @@ function StaffMasterList({ users, isLoading, onSelectUser }) {
 
 // ─── Access Control Sheet ───────────────────────────────────
 
-function AccessControlSheet({
-  selectedUser,
-  open,
-  onClose,
-  session,
-  queryClient,
-}) {
+function AccessControlSheet({ selectedUser, open, onClose, session, queryClient }) {
   const sheetSide = useSheetSide()
   const [selectedRole, setSelectedRole] = useState('volunteer')
   const [selectedModules, setSelectedModules] = useState([])
@@ -433,9 +468,7 @@ function AccessControlSheet({
 
   const handleTogglePermission = useCallback((key) => {
     setSelectedModules((prev) => {
-      const next = prev.includes(key)
-        ? prev.filter((m) => m !== key)
-        : [...prev, key]
+      const next = prev.includes(key) ? prev.filter((m) => m !== key) : [...prev, key]
       // Any manual toggle → set role to 'custom'
       setSelectedRole('custom')
       suppressAutoDetectRef.current = false
@@ -515,7 +548,8 @@ function AccessControlSheet({
         }),
       })
       if (res.ok) {
-        const verb = effectiveRole === 'volunteer' ? 'Access revoked for' : 'Permissions updated for'
+        const verb =
+          effectiveRole === 'volunteer' ? 'Access revoked for' : 'Permissions updated for'
         toast.success(`${verb} ${selectedUser.full_name || 'user'}`)
         queryClient.invalidateQueries({ queryKey: ['access-staff'] })
       } else {
@@ -544,10 +578,7 @@ function AccessControlSheet({
         if (!isOpen) onClose()
       }}
     >
-      <SheetContent
-        side={sheetSide}
-        className={`${sheetContentClass} [&>button.absolute]:hidden`}
-      >
+      <SheetContent side={sheetSide} className={`${sheetContentClass} [&>button.absolute]:hidden`}>
         {selectedUser ? (
           <>
             {/* Header */}
@@ -595,7 +626,9 @@ function AccessControlSheet({
                   </SelectContent>
                 </Select>
                 <div className="mt-2 flex items-center gap-2">
-                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium ${ROLE_COLORS[selectedRole] || ROLE_COLORS.custom}`}>
+                  <span
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium ${ROLE_COLORS[selectedRole] || ROLE_COLORS.custom}`}
+                  >
                     {formatRoleLabel(selectedRole)}
                   </span>
                   {isRevoke && selectedRole === 'volunteer' && (
@@ -632,7 +665,9 @@ function AccessControlSheet({
                               >
                                 <div className="min-w-0 flex-1">
                                   <p className="text-sm font-medium leading-tight">{perm.label}</p>
-                                  <p className="text-xs text-muted-foreground mt-0.5">{perm.description}</p>
+                                  <p className="text-xs text-muted-foreground mt-0.5">
+                                    {perm.description}
+                                  </p>
                                 </div>
                                 <Switch
                                   checked={isChecked}
@@ -740,11 +775,7 @@ export default function AccessManagementPage() {
             <ShieldCheck className="h-5 w-5 text-primary" />
             <h1 className="text-xl font-bold">Access Management</h1>
           </div>
-          <Button
-            size="sm"
-            className="gap-1.5"
-            onClick={() => setIsPromoteOpen(true)}
-          >
+          <Button size="sm" className="gap-1.5" onClick={() => setIsPromoteOpen(true)}>
             <UserPlus className="h-4 w-4" />
             <span className="hidden sm:inline">Grant Access</span>
             <span className="sm:hidden">Promote</span>
@@ -755,11 +786,7 @@ export default function AccessManagementPage() {
         </p>
       </div>
 
-      <StaffMasterList
-        users={staff}
-        isLoading={isLoading}
-        onSelectUser={handleSelectUser}
-      />
+      <StaffMasterList users={staff} isLoading={isLoading} onSelectUser={handleSelectUser} />
 
       <PromoteDialog
         open={isPromoteOpen}

@@ -31,9 +31,7 @@ export default clerkMiddleware(async (auth, req) => {
       : undefined
   const roleFromMeta = meta && 'role' in meta ? Reflect.get(meta, 'role') : undefined
   const roleFromFlat =
-    sessionClaims &&
-    typeof sessionClaims === 'object' &&
-    'role' in sessionClaims
+    sessionClaims && typeof sessionClaims === 'object' && 'role' in sessionClaims
       ? Reflect.get(sessionClaims, 'role')
       : undefined
   const role = roleFromMeta || roleFromFlat

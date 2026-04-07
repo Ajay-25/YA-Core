@@ -3,14 +3,7 @@
 import { useMemo } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
-import {
-  User,
-  Users,
-  Package,
-  ClipboardCheck,
-  CreditCard,
-  ShieldCheck,
-} from 'lucide-react'
+import { User, Users, Package, ClipboardCheck, CreditCard, ShieldCheck } from 'lucide-react'
 import { useDashboard } from '@/contexts/DashboardContext'
 import { hasAnyPermission, PERMISSIONS } from '@/lib/permissions'
 
@@ -74,24 +67,18 @@ export function BottomNav() {
         <div className="flex overflow-x-auto no-scrollbar">
           {visibleItems.map((item) => {
             const Icon = item.icon
-            const isActive =
-              pathname === item.href ||
-              pathname.startsWith(item.href + '/')
+            const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
 
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 className={`flex flex-col items-center justify-center gap-0.5 py-2 min-w-[4.5rem] flex-1 transition-colors ${
-                  isActive
-                    ? 'text-primary'
-                    : 'text-muted-foreground hover:text-foreground'
+                  isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 <Icon className={`h-5 w-5 ${isActive ? 'stroke-[2.5]' : ''}`} />
-                <span className="text-[10px] font-medium leading-none">
-                  {item.label}
-                </span>
+                <span className="text-[10px] font-medium leading-none">{item.label}</span>
               </Link>
             )
           })}

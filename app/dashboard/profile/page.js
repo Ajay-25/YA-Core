@@ -50,30 +50,32 @@ const sectionIcons = {
   'Permanent Address': <MapPin className="h-3.5 w-3.5 text-orange-500" />,
   'Communication Address': <MapPin className="h-3.5 w-3.5 text-blue-500" />,
   'Center & Zone': <Shield className="h-3.5 w-3.5 text-teal-500" />,
-  'Initiation': <Heart className="h-3.5 w-3.5 text-red-500" />,
+  Initiation: <Heart className="h-3.5 w-3.5 text-red-500" />,
   'Sewa Areas - Permanent': <MapPin className="h-3.5 w-3.5 text-green-500" />,
   'Sewa Areas - Current': <MapPin className="h-3.5 w-3.5 text-cyan-500" />,
-  'Qualification': <FileText className="h-3.5 w-3.5 text-indigo-500" />,
-  'Profession': <Briefcase className="h-3.5 w-3.5 text-amber-500" />,
+  Qualification: <FileText className="h-3.5 w-3.5 text-indigo-500" />,
+  Profession: <Briefcase className="h-3.5 w-3.5 text-amber-500" />,
   'I-Card & Uniform': <Package className="h-3.5 w-3.5 text-purple-500" />,
-  'Orientation': <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />,
-  'Status': <BarChart3 className="h-3.5 w-3.5 text-blue-500" />,
+  Orientation: <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />,
+  Status: <BarChart3 className="h-3.5 w-3.5 text-blue-500" />,
   'Digital & Apps': <Phone className="h-3.5 w-3.5 text-pink-500" />,
-  'Preferences': <Heart className="h-3.5 w-3.5 text-rose-500" />,
+  Preferences: <Heart className="h-3.5 w-3.5 text-rose-500" />,
   'Data Metadata': <FileText className="h-3.5 w-3.5 text-gray-500" />,
   'ID Proof': <FileText className="h-3.5 w-3.5 text-blue-500" />,
-  'Admin': <UserCog className="h-3.5 w-3.5 text-red-500" />,
+  Admin: <UserCog className="h-3.5 w-3.5 text-red-500" />,
 }
 
 function getInitials(name) {
   if (!name || typeof name !== 'string') return '?'
-  return name
-    .trim()
-    .split(/\s+/)
-    .map((w) => w[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase() || '?'
+  return (
+    name
+      .trim()
+      .split(/\s+/)
+      .map((w) => w[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase() || '?'
+  )
 }
 
 function useSheetSide() {
@@ -300,9 +302,7 @@ export default function ProfilePage() {
                   </Badge>
                 )}
                 {data.sewa_center && (
-                  <p className="text-sm text-muted-foreground mt-1 truncate">
-                    {data.sewa_center}
-                  </p>
+                  <p className="text-sm text-muted-foreground mt-1 truncate">{data.sewa_center}</p>
                 )}
               </div>
             </div>
@@ -343,21 +343,27 @@ export default function ProfilePage() {
                 <div className="flex items-start gap-3">
                   <User className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
                   <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground uppercase tracking-wider">First Name</p>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                      First Name
+                    </p>
                     <p className="text-sm font-medium">{core.first_name || '--'}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <User className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
                   <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground uppercase tracking-wider">Last Name</p>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                      Last Name
+                    </p>
                     <p className="text-sm font-medium">{core.last_name || '--'}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <Phone className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
                   <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground uppercase tracking-wider">Contact Number</p>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                      Contact Number
+                    </p>
                     <p className="text-sm font-medium">{data.contact_number || '--'}</p>
                   </div>
                 </div>
@@ -378,7 +384,9 @@ export default function ProfilePage() {
                 <div className="flex items-start gap-3">
                   <CalendarDays className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
                   <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground uppercase tracking-wider">Date of Birth</p>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                      Date of Birth
+                    </p>
                     <p className="text-sm font-medium">{data.date_of_birth || '--'}</p>
                   </div>
                 </div>
@@ -386,14 +394,20 @@ export default function ProfilePage() {
                   <Hash className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
                   <div className="min-w-0">
                     <p className="text-xs text-muted-foreground uppercase tracking-wider">Age</p>
-                    <p className="text-sm font-medium">{data.age != null && data.age !== '' ? String(data.age) : '--'}</p>
+                    <p className="text-sm font-medium">
+                      {data.age != null && data.age !== '' ? String(data.age) : '--'}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 md:col-span-2">
                   <MapPin className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
                   <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground uppercase tracking-wider">Address</p>
-                    <p className="text-sm font-medium break-words">{data.permanent_address || '--'}</p>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                      Address
+                    </p>
+                    <p className="text-sm font-medium break-words">
+                      {data.permanent_address || '--'}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -412,28 +426,36 @@ export default function ProfilePage() {
                   <div className="flex items-start gap-3">
                     <MapPin className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
                     <div className="min-w-0">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Sewa Centre</p>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                        Sewa Centre
+                      </p>
                       <p className="text-sm font-medium">{data.sewa_center || '--'}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <Map className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
                     <div className="min-w-0">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Sewa Zone</p>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                        Sewa Zone
+                      </p>
                       <p className="text-sm font-medium">{data.sewa_zone || '--'}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <HeartHandshake className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
                     <div className="min-w-0">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Primary Sewa (Current)</p>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                        Primary Sewa (Current)
+                      </p>
                       <p className="text-sm font-medium">{data.primary_sewa_current || '--'}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <Briefcase className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
                     <div className="min-w-0">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Primary Sewa (Permanent)</p>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                        Primary Sewa (Permanent)
+                      </p>
                       <p className="text-sm font-medium">{data.primary_sewa_permanent || '--'}</p>
                     </div>
                   </div>
@@ -448,35 +470,49 @@ export default function ProfilePage() {
                   <div className="flex items-start gap-3">
                     <IdCard className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
                     <div className="min-w-0">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Permanent I-Card Status</p>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                        Permanent I-Card Status
+                      </p>
                       <p className="text-sm font-medium">{data.permanent_icard_status || '--'}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <Shirt className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
                     <div className="min-w-0">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Uniform</p>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                        Uniform
+                      </p>
                       <p className="text-sm font-medium">{data.uniform || '--'}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <CalendarPlus className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
                     <div className="min-w-0">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Date of Joining / Orientation</p>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                        Date of Joining / Orientation
+                      </p>
                       <p className="text-sm font-medium">{data.date_of_joining || '--'}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <Clock className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
                     <div className="min-w-0">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Years in YA</p>
-                      <p className="text-sm font-medium">{data.years_in_ya != null && data.years_in_ya !== '' ? String(data.years_in_ya) : '--'}</p>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                        Years in YA
+                      </p>
+                      <p className="text-sm font-medium">
+                        {data.years_in_ya != null && data.years_in_ya !== ''
+                          ? String(data.years_in_ya)
+                          : '--'}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <Activity className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
                     <div className="min-w-0">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider">Active Status</p>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                        Active Status
+                      </p>
                       <p className="text-sm font-medium">{data.active_status || '--'}</p>
                     </div>
                   </div>
@@ -534,7 +570,11 @@ export default function ProfilePage() {
               <div className="overflow-x-auto -mx-2 px-2 pb-1">
                 <TabsList className="inline-flex w-auto min-w-full h-9">
                   {PROFILE_TABS.map((tab) => (
-                    <TabsTrigger key={tab.id} value={tab.id} className="text-[11px] px-2.5 whitespace-nowrap">
+                    <TabsTrigger
+                      key={tab.id}
+                      value={tab.id}
+                      className="text-[11px] px-2.5 whitespace-nowrap"
+                    >
                       {tab.label}
                     </TabsTrigger>
                   ))}
@@ -582,7 +622,8 @@ export default function ProfilePage() {
                     <CardContent className="py-6 text-center">
                       <Shield className="h-10 w-10 text-muted-foreground/40 mx-auto mb-2" />
                       <p className="text-sm text-muted-foreground">
-                        Sensitive data is view-only here. Use the Volunteers list to manage sensitive fields.
+                        Sensitive data is view-only here. Use the Volunteers list to manage
+                        sensitive fields.
                       </p>
                     </CardContent>
                   </Card>
@@ -591,16 +632,8 @@ export default function ProfilePage() {
             </Tabs>
           </div>
           <div className="absolute bottom-0 left-0 right-0 p-4 bg-background border-t">
-            <Button
-              className="w-full h-12 font-medium"
-              disabled={saving}
-              onClick={handleSave}
-            >
-              {saving ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Save className="h-4 w-4" />
-              )}
+            <Button className="w-full h-12 font-medium" disabled={saving} onClick={handleSave}>
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               Save Changes
             </Button>
           </div>

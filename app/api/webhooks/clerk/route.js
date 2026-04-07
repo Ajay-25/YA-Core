@@ -41,15 +41,14 @@ export async function POST(req) {
       return NextResponse.json({ error: 'Missing user id' }, { status: 400 })
     }
 
-    const primary = data.email_addresses?.find((e) => e.id === data.primary_email_address_id)
-      || data.email_addresses?.[0]
+    const primary =
+      data.email_addresses?.find((e) => e.id === data.primary_email_address_id) ||
+      data.email_addresses?.[0]
     const email = primary?.email_address ?? ''
     const firstName = data.first_name ?? ''
     const lastName = data.last_name ?? ''
     const fullName =
-      [firstName, lastName].filter(Boolean).join(' ').trim()
-      || email.split('@')[0]
-      || 'Volunteer'
+      [firstName, lastName].filter(Boolean).join(' ').trim() || email.split('@')[0] || 'Volunteer'
 
     const now = new Date()
 

@@ -14,10 +14,12 @@ export async function GET(request) {
   const authCtx = await getRequestAuth()
   if (!authCtx) return cors(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
   if (!(await canAccessDirectory(authCtx.userId))) {
-    return cors(NextResponse.json(
-      { error: 'Unauthorized: Missing directory:view permission' },
-      { status: 403 }
-    ))
+    return cors(
+      NextResponse.json(
+        { error: 'Unauthorized: Missing directory:view permission' },
+        { status: 403 }
+      )
+    )
   }
 
   const { searchParams } = new URL(request.url)

@@ -6,211 +6,274 @@ require('dotenv').config({ path: path.join(__dirname, '..', '.env.local') })
 const { neon } = require('@neondatabase/serverless')
 
 if (!process.env.DATABASE_URL) {
-	console.error('DATABASE_URL is missing (.env.local)')
-	process.exit(1)
+  console.error('DATABASE_URL is missing (.env.local)')
+  process.exit(1)
 }
 
 const sql = neon(process.env.DATABASE_URL)
 
 const FIRST_NAMES = [
-	'Aarav', 'Vihaan', 'Aditya', 'Arjun', 'Rohan', 'Siddharth', 'Karan', 'Raj', 'Amit', 'Neeraj',
-	'Priya', 'Ananya', 'Kavya', 'Neha', 'Sneha', 'Meera', 'Divya', 'Isha', 'Riya', 'Pooja',
+  'Aarav',
+  'Vihaan',
+  'Aditya',
+  'Arjun',
+  'Rohan',
+  'Siddharth',
+  'Karan',
+  'Raj',
+  'Amit',
+  'Neeraj',
+  'Priya',
+  'Ananya',
+  'Kavya',
+  'Neha',
+  'Sneha',
+  'Meera',
+  'Divya',
+  'Isha',
+  'Riya',
+  'Pooja',
 ]
 const LAST_NAMES = [
-	'Sharma', 'Verma', 'Patel', 'Singh', 'Kumar', 'Reddy', 'Iyer', 'Kapoor', 'Joshi', 'Malhotra',
-	'Gupta', 'Agarwal', 'Mehta', 'Chopra', 'Nair', 'Menon', 'Rao', 'Desai', 'Shah', 'Kulkarni',
+  'Sharma',
+  'Verma',
+  'Patel',
+  'Singh',
+  'Kumar',
+  'Reddy',
+  'Iyer',
+  'Kapoor',
+  'Joshi',
+  'Malhotra',
+  'Gupta',
+  'Agarwal',
+  'Mehta',
+  'Chopra',
+  'Nair',
+  'Menon',
+  'Rao',
+  'Desai',
+  'Shah',
+  'Kulkarni',
 ]
 const MIDDLE_NAMES = ['', 'Kumar', 'Devi', 'Singh', 'Lal', 'Prasad', '']
-const CITIES = ['Rohini', 'Dwarka', 'Pitampura', 'Noida', 'Gurgaon', 'Faridabad', 'Ghaziabad', 'Karol Bagh']
+const CITIES = [
+  'Rohini',
+  'Dwarka',
+  'Pitampura',
+  'Noida',
+  'Gurgaon',
+  'Faridabad',
+  'Ghaziabad',
+  'Karol Bagh',
+]
 const STATES = ['Delhi', 'Uttar Pradesh', 'Haryana', 'Delhi', 'Uttar Pradesh']
 const DISTRICTS = ['North West Delhi', 'South Delhi', 'Gautam Buddh Nagar', 'Gurugram', 'Faridabad']
 const SEWA_CENTERS = ['YA Delhi North', 'YA Delhi South', 'YA NCR East', 'YA NCR West']
 const SEWA_ZONES = ['Zone A', 'Zone B', 'Zone C', 'Zone D']
 const QUALIFICATIONS = ['Graduate', 'Post Graduate', '12th Pass', 'Diploma', 'Professional Degree']
-const PROFESSIONS = ['Software Engineer', 'Teacher', 'Doctor', 'Student', 'Business', 'Government Service', 'Homemaker', 'Retired']
-const COMPANIES = ['TCS', 'Infosys', 'Local School', 'AIIMS', 'Self Employed', 'HCL', 'Freelance', '—']
+const PROFESSIONS = [
+  'Software Engineer',
+  'Teacher',
+  'Doctor',
+  'Student',
+  'Business',
+  'Government Service',
+  'Homemaker',
+  'Retired',
+]
+const COMPANIES = [
+  'TCS',
+  'Infosys',
+  'Local School',
+  'AIIMS',
+  'Self Employed',
+  'HCL',
+  'Freelance',
+  '—',
+]
 const BLOOD_GROUPS = ['A+', 'B+', 'O+', 'AB+', 'A-', 'B-', 'O-']
 
 /**
  * @param {number} i 1..100
  */
 function buildVolunteer(i) {
-	const fn = FIRST_NAMES[(i - 1) % FIRST_NAMES.length]
-	const ln = LAST_NAMES[(i - 1 + Math.floor(i / 11)) % LAST_NAMES.length]
-	const mn = MIDDLE_NAMES[i % MIDDLE_NAMES.length]
-	const fullName = mn ? `${fn} ${mn} ${ln}` : `${fn} ${ln}`
-	const slug = `${fn}.${ln}${i}`
-		.toLowerCase()
-		.normalize('NFD')
-		.replace(/[\u0300-\u036f]/g, '')
-		.replace(/[^a-z0-9.]/g, '')
-	const email = `${slug}@seed.volunteers.ya`
-	const contact = `98765${String(43000 + i).padStart(5, '0')}`
-	const altContact = `91234${String(41000 + i).padStart(5, '0')}`
-	const whatsapp = contact
-	const emergency = `98100${String(4000 + (i % 9000)).padStart(4, '0')}`
-	const age = String(20 + (i % 40))
-	const gender = i % 2 === 0 ? 'Female' : 'Male'
-	const yob = 1985 + (i % 25)
-	const dob = `${yob}-${String(1 + (i % 12)).padStart(2, '0')}-${String(1 + (i % 28)).padStart(2, '0')}`
-	const city = CITIES[i % CITIES.length]
-	const state = STATES[i % STATES.length]
-	const district = DISTRICTS[i % DISTRICTS.length]
-	const pin = String(110000 + (i % 90))
-	const house = 12 + (i % 180)
-	const street = `Block ${(i % 12) + 1}`
-	const area = ['Sector 7', 'Phase 2', 'Extension', 'Main Road', 'Colony'][i % 5]
-	const permanentAddress = `${house}, ${street}, ${area}, ${city}`
-	const commPin = pin
-	const sewaCenter = SEWA_CENTERS[i % SEWA_CENTERS.length]
-	const sewaZone = SEWA_ZONES[i % SEWA_ZONES.length]
-	const qual = QUALIFICATIONS[i % QUALIFICATIONS.length]
-	const profession = PROFESSIONS[i % PROFESSIONS.length]
-	const company = COMPANIES[i % COMPANIES.length]
-	const blood = BLOOD_GROUPS[i % BLOOD_GROUPS.length]
-	const yearsYa = String(1 + (i % 12))
-	const joinYear = 2015 + (i % 8)
+  const fn = FIRST_NAMES[(i - 1) % FIRST_NAMES.length]
+  const ln = LAST_NAMES[(i - 1 + Math.floor(i / 11)) % LAST_NAMES.length]
+  const mn = MIDDLE_NAMES[i % MIDDLE_NAMES.length]
+  const fullName = mn ? `${fn} ${mn} ${ln}` : `${fn} ${ln}`
+  const slug = `${fn}.${ln}${i}`
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9.]/g, '')
+  const email = `${slug}@seed.volunteers.ya`
+  const contact = `98765${String(43000 + i).padStart(5, '0')}`
+  const altContact = `91234${String(41000 + i).padStart(5, '0')}`
+  const whatsapp = contact
+  const emergency = `98100${String(4000 + (i % 9000)).padStart(4, '0')}`
+  const age = String(20 + (i % 40))
+  const gender = i % 2 === 0 ? 'Female' : 'Male'
+  const yob = 1985 + (i % 25)
+  const dob = `${yob}-${String(1 + (i % 12)).padStart(2, '0')}-${String(1 + (i % 28)).padStart(2, '0')}`
+  const city = CITIES[i % CITIES.length]
+  const state = STATES[i % STATES.length]
+  const district = DISTRICTS[i % DISTRICTS.length]
+  const pin = String(110000 + (i % 90))
+  const house = 12 + (i % 180)
+  const street = `Block ${(i % 12) + 1}`
+  const area = ['Sector 7', 'Phase 2', 'Extension', 'Main Road', 'Colony'][i % 5]
+  const permanentAddress = `${house}, ${street}, ${area}, ${city}`
+  const commPin = pin
+  const sewaCenter = SEWA_CENTERS[i % SEWA_CENTERS.length]
+  const sewaZone = SEWA_ZONES[i % SEWA_ZONES.length]
+  const qual = QUALIFICATIONS[i % QUALIFICATIONS.length]
+  const profession = PROFESSIONS[i % PROFESSIONS.length]
+  const company = COMPANIES[i % COMPANIES.length]
+  const blood = BLOOD_GROUPS[i % BLOOD_GROUPS.length]
+  const yearsYa = String(1 + (i % 12))
+  const joinYear = 2015 + (i % 8)
 
-	return {
-		core: {
-			user_id: `seed_volunteer_${i}`,
-			full_name: fullName,
-			first_name: fn,
-			middle_name: mn || null,
-			last_name: ln,
-			photo_url: `https://i.pravatar.cc/150?u=seed-ya-vol-${i}`,
-			email,
-			ya_id: String(i),
-			role: 'volunteer',
-			qr_code_url: '',
-			account_status: 'active',
-		},
-		data: {
-			age,
-			gender,
-			date_of_birth: dob,
-			marital_status: i % 3 === 0 ? 'Married' : 'Single',
-			blood_group: blood,
-			willing_blood_donation: i % 2 === 0 ? 'Yes' : 'No',
-			image_remarks: '',
-			image_saved_as: '',
-			contact_number: contact,
-			alternate_contact: altContact,
-			whatsapp_number: whatsapp,
-			emergency_contact: emergency,
-			emergency_relationship: i % 2 === 0 ? 'Parent' : 'Spouse',
-			preferred_communication: i % 2 === 0 ? 'WhatsApp' : 'Phone',
-			languages_known: 'Hindi, English',
-			email_id: email,
-			permanent_address: permanentAddress,
-			landmark: ['Near metro', 'Opposite park', 'Behind mandir', 'Main chowk'][i % 4],
-			country: 'India',
-			state,
-			district,
-			tehsil: city,
-			city_town_village: city,
-			post_office: `${city} HO`,
-			pin_code: pin,
-			permanent_center: sewaCenter,
-			zone_permanent_center: sewaZone,
-			permanent_address_remarks: '',
-			same_as_permanent: 'Yes',
-			communication_address: permanentAddress,
-			communication_pincode: commPin,
-			communication_remarks: '',
-			sewa_center: sewaCenter,
-			sewa_zone: sewaZone,
-			if_initiated: 'Yes',
-			initiated_by: 'Center Lead',
-			date_of_initiation: `${joinYear}-06-15`,
-			initiation_remarks: '',
-			primary_sewa_permanent: 'Community kitchen',
-			secondary_sewa_permanent: 'Events',
-			other_sewa_permanent: '',
-			primary_sewa_current: 'Community kitchen',
-			secondary_sewa_current: 'Blood donation camp',
-			other_sewa_current: '',
-			sewa_area_delhi: city,
-			highest_qualification: qual,
-			graduation: qual === 'Graduate' || qual === 'Post Graduate' ? 'B.A./B.Sc./B.Tech' : '',
-			graduation_secondary: 'CBSE',
-			graduation_college: `University ${(i % 5) + 1}`,
-			post_graduation: qual === 'Post Graduate' ? 'M.A./M.Sc.' : '',
-			post_graduation_secondary: '',
-			post_graduation_college: qual === 'Post Graduate' ? `PG College ${i % 3}` : '',
-			professional_course: i % 4 === 0 ? 'CA Foundation' : '',
-			occupation_category: i % 2 === 0 ? 'Private' : 'Public',
-			profession,
-			profession_business_name: profession === 'Self Employed' ? `${ln} Enterprises` : '',
-			company_name: company,
-			job_designation: profession === 'Student' ? 'Student' : 'Executive',
-			special_skills: ['Driving', 'First aid', 'IT', 'Music'][i % 4],
-			permanent_icard_status: i % 3 === 0 ? 'Issued' : 'Pending',
-			miscellaneous: '',
-			type_of_icard: 'Volunteer',
-			icard_remarks: '',
-			permanent_icard_request: i % 3 === 0 ? 'Approved' : 'Submitted',
-			uniform: i % 2 === 0 ? 'T-Shirt L' : 'T-Shirt M',
-			orientation_training: 'Completed',
-			place_of_orientation: sewaCenter,
-			date_of_joining: `${joinYear}-01-10`,
-			orientation_date_remarks: '',
-			years_in_ya: yearsYa,
-			active_status: 'Active',
-			active_status_updated_on: '2025-03-01',
-			remarks: 'Seed data — dummy volunteer',
-			ya_id_remarks: '',
-			role_responsibility: i % 5 === 0 ? 'Team lead' : 'Volunteer',
-			role_updated_on: '2025-01-15',
-			registered_beone: i % 2 === 0 ? 'Yes' : 'No',
-			sos_username: `ya_${slug.slice(0, 12)}`,
-			beone_remarks: '',
-			knows_car_driving: i % 3 === 0 ? 'Yes' : 'No',
-			using_ya_event_app: 'Yes',
-			sat_sandesh: 'Yes',
-			social_media: i % 2 === 0 ? 'Instagram' : 'None',
-			frontend_sewa_preference: 'Events',
-			backend_sewa_preference: 'Admin support',
-			availability: ['Weekends', 'Evenings', 'Flexible'][i % 3],
-			sewa_timings: '4–6 hours / week',
-			last_updated_sheet: '2025-04-01',
-			data_updation_remarks: 'Bulk seed',
-		},
-		sensitive: {
-			id_proof_type: 'Aadhaar',
-			id_proof_remarks: 'Seed — not a real document',
-			id_proof_saved_as: `aadhaar_seed_${i}.pdf`,
-			admin_notes: '',
-			background_check_status: i % 7 === 0 ? 'pending' : 'cleared',
-			flag_status: 'none',
-		},
-	}
+  return {
+    core: {
+      user_id: `seed_volunteer_${i}`,
+      full_name: fullName,
+      first_name: fn,
+      middle_name: mn || null,
+      last_name: ln,
+      photo_url: `https://i.pravatar.cc/150?u=seed-ya-vol-${i}`,
+      email,
+      ya_id: String(i),
+      role: 'volunteer',
+      qr_code_url: '',
+      account_status: 'active',
+    },
+    data: {
+      age,
+      gender,
+      date_of_birth: dob,
+      marital_status: i % 3 === 0 ? 'Married' : 'Single',
+      blood_group: blood,
+      willing_blood_donation: i % 2 === 0 ? 'Yes' : 'No',
+      image_remarks: '',
+      image_saved_as: '',
+      contact_number: contact,
+      alternate_contact: altContact,
+      whatsapp_number: whatsapp,
+      emergency_contact: emergency,
+      emergency_relationship: i % 2 === 0 ? 'Parent' : 'Spouse',
+      preferred_communication: i % 2 === 0 ? 'WhatsApp' : 'Phone',
+      languages_known: 'Hindi, English',
+      email_id: email,
+      permanent_address: permanentAddress,
+      landmark: ['Near metro', 'Opposite park', 'Behind mandir', 'Main chowk'][i % 4],
+      country: 'India',
+      state,
+      district,
+      tehsil: city,
+      city_town_village: city,
+      post_office: `${city} HO`,
+      pin_code: pin,
+      permanent_center: sewaCenter,
+      zone_permanent_center: sewaZone,
+      permanent_address_remarks: '',
+      same_as_permanent: 'Yes',
+      communication_address: permanentAddress,
+      communication_pincode: commPin,
+      communication_remarks: '',
+      sewa_center: sewaCenter,
+      sewa_zone: sewaZone,
+      if_initiated: 'Yes',
+      initiated_by: 'Center Lead',
+      date_of_initiation: `${joinYear}-06-15`,
+      initiation_remarks: '',
+      primary_sewa_permanent: 'Community kitchen',
+      secondary_sewa_permanent: 'Events',
+      other_sewa_permanent: '',
+      primary_sewa_current: 'Community kitchen',
+      secondary_sewa_current: 'Blood donation camp',
+      other_sewa_current: '',
+      sewa_area_delhi: city,
+      highest_qualification: qual,
+      graduation: qual === 'Graduate' || qual === 'Post Graduate' ? 'B.A./B.Sc./B.Tech' : '',
+      graduation_secondary: 'CBSE',
+      graduation_college: `University ${(i % 5) + 1}`,
+      post_graduation: qual === 'Post Graduate' ? 'M.A./M.Sc.' : '',
+      post_graduation_secondary: '',
+      post_graduation_college: qual === 'Post Graduate' ? `PG College ${i % 3}` : '',
+      professional_course: i % 4 === 0 ? 'CA Foundation' : '',
+      occupation_category: i % 2 === 0 ? 'Private' : 'Public',
+      profession,
+      profession_business_name: profession === 'Self Employed' ? `${ln} Enterprises` : '',
+      company_name: company,
+      job_designation: profession === 'Student' ? 'Student' : 'Executive',
+      special_skills: ['Driving', 'First aid', 'IT', 'Music'][i % 4],
+      permanent_icard_status: i % 3 === 0 ? 'Issued' : 'Pending',
+      miscellaneous: '',
+      type_of_icard: 'Volunteer',
+      icard_remarks: '',
+      permanent_icard_request: i % 3 === 0 ? 'Approved' : 'Submitted',
+      uniform: i % 2 === 0 ? 'T-Shirt L' : 'T-Shirt M',
+      orientation_training: 'Completed',
+      place_of_orientation: sewaCenter,
+      date_of_joining: `${joinYear}-01-10`,
+      orientation_date_remarks: '',
+      years_in_ya: yearsYa,
+      active_status: 'Active',
+      active_status_updated_on: '2025-03-01',
+      remarks: 'Seed data — dummy volunteer',
+      ya_id_remarks: '',
+      role_responsibility: i % 5 === 0 ? 'Team lead' : 'Volunteer',
+      role_updated_on: '2025-01-15',
+      registered_beone: i % 2 === 0 ? 'Yes' : 'No',
+      sos_username: `ya_${slug.slice(0, 12)}`,
+      beone_remarks: '',
+      knows_car_driving: i % 3 === 0 ? 'Yes' : 'No',
+      using_ya_event_app: 'Yes',
+      sat_sandesh: 'Yes',
+      social_media: i % 2 === 0 ? 'Instagram' : 'None',
+      frontend_sewa_preference: 'Events',
+      backend_sewa_preference: 'Admin support',
+      availability: ['Weekends', 'Evenings', 'Flexible'][i % 3],
+      sewa_timings: '4–6 hours / week',
+      last_updated_sheet: '2025-04-01',
+      data_updation_remarks: 'Bulk seed',
+    },
+    sensitive: {
+      id_proof_type: 'Aadhaar',
+      id_proof_remarks: 'Seed — not a real document',
+      id_proof_saved_as: `aadhaar_seed_${i}.pdf`,
+      admin_notes: '',
+      background_check_status: i % 7 === 0 ? 'pending' : 'cleared',
+      flag_status: 'none',
+    },
+  }
 }
 
 async function main() {
-	let insertedCore = 0
-	let updatedCore = 0
-	let insertedData = 0
-	let updatedData = 0
-	let insertedSens = 0
+  let insertedCore = 0
+  let updatedCore = 0
+  let insertedData = 0
+  let updatedData = 0
+  let insertedSens = 0
 
-	for (let i = 1; i <= 100; i++) {
-		const { core, data, sensitive } = buildVolunteer(i)
-		const {
-			user_id: userId,
-			full_name: fullName,
-			first_name: firstName,
-			middle_name: middleName,
-			last_name: lastName,
-			photo_url: photoUrl,
-			email,
-			ya_id: yaId,
-			role,
-			qr_code_url: qrCodeUrl,
-			account_status: accountStatus,
-		} = core
+  for (let i = 1; i <= 100; i++) {
+    const { core, data, sensitive } = buildVolunteer(i)
+    const {
+      user_id: userId,
+      full_name: fullName,
+      first_name: firstName,
+      middle_name: middleName,
+      last_name: lastName,
+      photo_url: photoUrl,
+      email,
+      ya_id: yaId,
+      role,
+      qr_code_url: qrCodeUrl,
+      account_status: accountStatus,
+    } = core
 
-		const insCore = await sql`
+    const insCore = await sql`
 			INSERT INTO profiles_core (
 				user_id, full_name, first_name, middle_name, last_name, photo_url, email, ya_id, role, qr_code_url, account_status
 			)
@@ -218,9 +281,9 @@ async function main() {
 			WHERE NOT EXISTS (SELECT 1 FROM profiles_core pc WHERE pc.ya_id = ${yaId})
 			RETURNING id
 		`
-		if (insCore.length > 0) insertedCore++
+    if (insCore.length > 0) insertedCore++
 
-		const upCore = await sql`
+    const upCore = await sql`
 			UPDATE profiles_core SET
 				full_name = ${fullName},
 				first_name = ${firstName},
@@ -235,10 +298,10 @@ async function main() {
 			WHERE user_id = ${userId}
 			RETURNING id
 		`
-		if (upCore.length > 0) updatedCore++
+    if (upCore.length > 0) updatedCore++
 
-		const dataCols = data
-		const upData = await sql`
+    const dataCols = data
+    const upData = await sql`
 			UPDATE profiles_data SET
 				age = ${dataCols.age},
 				gender = ${dataCols.gender},
@@ -334,10 +397,10 @@ async function main() {
 			RETURNING id
 		`
 
-		if (upData.length > 0) {
-			updatedData++
-		} else {
-			const insData = await sql`
+    if (upData.length > 0) {
+      updatedData++
+    } else {
+      const insData = await sql`
 			INSERT INTO profiles_data (
 				user_id, age, gender, date_of_birth, marital_status, blood_group, willing_blood_donation,
 				image_remarks, image_saved_as, contact_number, alternate_contact, whatsapp_number,
@@ -381,10 +444,10 @@ async function main() {
 			)
 			RETURNING id
 		`
-			if (insData.length > 0) insertedData++
-		}
+      if (insData.length > 0) insertedData++
+    }
 
-		const sensIns = await sql`
+    const sensIns = await sql`
 			INSERT INTO profiles_sensitive (
 				user_id, id_proof_type, id_proof_remarks, id_proof_saved_as, admin_notes, background_check_status, flag_status
 			)
@@ -393,16 +456,16 @@ async function main() {
 			WHERE NOT EXISTS (SELECT 1 FROM profiles_sensitive ps WHERE ps.user_id = ${userId})
 			RETURNING id
 		`
-		if (sensIns.length > 0) insertedSens++
-	}
+    if (sensIns.length > 0) insertedSens++
+  }
 
-	console.log(
-		`Volunteer seed: profiles_core +${insertedCore} inserted, ${updatedCore} updated; profiles_data +${insertedData} inserted, ${updatedData} updated; profiles_sensitive +${insertedSens} inserted.`
-	)
-	console.log('Note: Re-running refreshes all fields for user_id seed_volunteer_1…100.')
+  console.log(
+    `Volunteer seed: profiles_core +${insertedCore} inserted, ${updatedCore} updated; profiles_data +${insertedData} inserted, ${updatedData} updated; profiles_sensitive +${insertedSens} inserted.`
+  )
+  console.log('Note: Re-running refreshes all fields for user_id seed_volunteer_1…100.')
 }
 
 main().catch((err) => {
-	console.error(err)
-	process.exit(1)
+  console.error(err)
+  process.exit(1)
 })

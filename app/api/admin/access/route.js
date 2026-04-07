@@ -53,7 +53,12 @@ export async function POST(request) {
     }
 
     const validRoles = [
-      'admin', 'operations_manager', 'desk_moderator', 'attendance_scanner', 'custom', 'volunteer',
+      'admin',
+      'operations_manager',
+      'desk_moderator',
+      'attendance_scanner',
+      'custom',
+      'volunteer',
     ]
     if (role && !validRoles.includes(role)) {
       return cors(NextResponse.json({ error: 'Invalid role' }, { status: 400 }))

@@ -34,11 +34,7 @@ async function handleRoute(request, { params }) {
     if (route === '/profile/ensure' && method === 'POST') {
       const authCtx = await getRequestAuth()
       if (!authCtx) return cors(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
-      const existing = await repo.ensureProfileRows(
-        authCtx.userId,
-        authCtx.email,
-        authCtx.fullName
-      )
+      const existing = await repo.ensureProfileRows(authCtx.userId, authCtx.email, authCtx.fullName)
       return cors(NextResponse.json({ status: 'ok', profile: existing }))
     }
 
@@ -84,10 +80,12 @@ async function handleRoute(request, { params }) {
       const authCtx = await getRequestAuth()
       if (!authCtx) return cors(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
       if (!(await canAccessDirectory(authCtx.userId))) {
-        return cors(NextResponse.json(
-          { error: 'Unauthorized: Missing directory:view permission' },
-          { status: 403 }
-        ))
+        return cors(
+          NextResponse.json(
+            { error: 'Unauthorized: Missing directory:view permission' },
+            { status: 403 }
+          )
+        )
       }
       const url = new URL(request.url)
       const search = url.searchParams.get('search') || ''
@@ -101,22 +99,26 @@ async function handleRoute(request, { params }) {
       const authCtx = await getRequestAuth()
       if (!authCtx) return cors(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
       if (!(await canAccessDirectory(authCtx.userId))) {
-        return cors(NextResponse.json(
-          { error: 'Unauthorized: Missing directory:view permission' },
-          { status: 403 }
-        ))
+        return cors(
+          NextResponse.json(
+            { error: 'Unauthorized: Missing directory:view permission' },
+            { status: 403 }
+          )
+        )
       }
       const param = path[path.length - 1]
       const bundle = await repo.getVolunteerDetailByParam(param)
       if (!bundle) {
         return cors(NextResponse.json({ error: 'Profile not found' }, { status: 404 }))
       }
-      return cors(NextResponse.json({
-        core: bundle.core,
-        data: bundle.data,
-        sensitive: bundle.sensitive,
-        inventory: bundle.inventory,
-      }))
+      return cors(
+        NextResponse.json({
+          core: bundle.core,
+          data: bundle.data,
+          sensitive: bundle.sensitive,
+          inventory: bundle.inventory,
+        })
+      )
     }
 
     if (route === '/admin/sensitive/update' && method === 'POST') {
@@ -138,10 +140,12 @@ async function handleRoute(request, { params }) {
       const authCtx = await getRequestAuth()
       if (!authCtx) return cors(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
       if (!(await canEditVolunteerProfiles(authCtx.userId))) {
-        return cors(NextResponse.json(
-          { error: 'Unauthorized: Missing directory:edit permission' },
-          { status: 403 }
-        ))
+        return cors(
+          NextResponse.json(
+            { error: 'Unauthorized: Missing directory:edit permission' },
+            { status: 403 }
+          )
+        )
       }
       const { target_user_id, core: coreUpdate, data: dataUpdate } = await request.json()
       if (!target_user_id) {
@@ -188,11 +192,15 @@ async function handleRoute(request, { params }) {
       const { id, ...updateData } = body
       if (!id) return cors(NextResponse.json({ error: 'ID required' }, { status: 400 }))
       const allowed = new Set([
-        'name', 'category', 'description', 'total_quantity', 'issued_quantity', 'unit', 'min_stock_level',
+        'name',
+        'category',
+        'description',
+        'total_quantity',
+        'issued_quantity',
+        'unit',
+        'min_stock_level',
       ])
-      const clean = Object.fromEntries(
-        Object.entries(updateData).filter(([k]) => allowed.has(k))
-      )
+      const clean = Object.fromEntries(Object.entries(updateData).filter(([k]) => allowed.has(k)))
       try {
         await repo.updateStockItem(id, clean)
       } catch (e) {
@@ -264,10 +272,9 @@ async function handleRoute(request, { params }) {
       const authCtx = await getRequestAuth()
       if (!authCtx) return cors(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
       if (!(await canAccessStock(authCtx.userId))) {
-        return cors(NextResponse.json(
-          { error: 'Unauthorized: Missing stock permissions' },
-          { status: 403 }
-        ))
+        return cors(
+          NextResponse.json({ error: 'Unauthorized: Missing stock permissions' }, { status: 403 })
+        )
       }
       const data = await repo.listInventoryItems()
       return cors(NextResponse.json({ data: data || [] }))
@@ -288,7 +295,13 @@ async function handleRoute(request, { params }) {
       return cors(NextResponse.json({ data: merged }))
     }
 
-    if (path[0] === 'admin' && path[1] === 'inventory' && path[2] === 'volunteers' && path[4] === 'logs' && method === 'GET') {
+    if (
+      path[0] === 'admin' &&
+      path[1] === 'inventory' &&
+      path[2] === 'volunteers' &&
+      path[4] === 'logs' &&
+      method === 'GET'
+    ) {
       const authCtx = await getRequestAuth()
       if (!authCtx) return cors(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
       if (!(await isAdmin(authCtx.userId))) {
@@ -303,7 +316,13 @@ async function handleRoute(request, { params }) {
       return cors(NextResponse.json({ data: data || [], hasIssued: (data || []).length > 0 }))
     }
 
-    if (path[0] === 'admin' && path[1] === 'inventory' && path[2] === 'volunteers' && path[4] === 'history' && method === 'GET') {
+    if (
+      path[0] === 'admin' &&
+      path[1] === 'inventory' &&
+      path[2] === 'volunteers' &&
+      path[4] === 'history' &&
+      method === 'GET'
+    ) {
       const authCtx = await getRequestAuth()
       if (!authCtx) return cors(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
       if (!(await isAdmin(authCtx.userId))) {
@@ -329,22 +348,25 @@ async function handleRoute(request, { params }) {
       const batchItems = Array.isArray(body.items) ? body.items : null
 
       if (!volunteer_id || !['cash', 'upi', 'waived', 'pending'].includes(payment_method)) {
-        return cors(NextResponse.json(
-          { error: 'Missing volunteer_id or invalid payment_method' },
-          { status: 400 }
-        ))
+        return cors(
+          NextResponse.json(
+            { error: 'Missing volunteer_id or invalid payment_method' },
+            { status: 400 }
+          )
+        )
       }
 
       const volunteerProfileId = await repo.resolveVolunteerProfileId(volunteer_id)
       if (!volunteerProfileId) {
-        return cors(NextResponse.json({ error: 'Volunteer not found in profiles' }, { status: 404 }))
+        return cors(
+          NextResponse.json({ error: 'Volunteer not found in profiles' }, { status: 404 })
+        )
       }
       const issuedByProfileId = await repo.getProfileCoreIdByUserId(authCtx.userId)
       if (!issuedByProfileId) {
-        return cors(NextResponse.json(
-          { error: 'Issuer profile not found in profiles_core' },
-          { status: 403 }
-        ))
+        return cors(
+          NextResponse.json({ error: 'Issuer profile not found in profiles_core' }, { status: 403 })
+        )
       }
 
       try {
@@ -360,7 +382,9 @@ async function handleRoute(request, { params }) {
             lines,
           })
           if (result.error) {
-            return cors(NextResponse.json({ error: result.error }, { status: result.status || 400 }))
+            return cors(
+              NextResponse.json({ error: result.error }, { status: result.status || 400 })
+            )
           }
           return cors(
             NextResponse.json({ status: 'ok', data: result.logs, count: result.logs.length })
@@ -369,20 +393,24 @@ async function handleRoute(request, { params }) {
 
         const { item_id, quantity_issued } = body
         if (!item_id || quantity_issued == null || quantity_issued <= 0) {
-          return cors(NextResponse.json(
-            { error: 'Missing or invalid item_id or quantity_issued (or send items: [])' },
-            { status: 400 }
-          ))
+          return cors(
+            NextResponse.json(
+              { error: 'Missing or invalid item_id or quantity_issued (or send items: [])' },
+              { status: 400 }
+            )
+          )
         }
         const item = await repo.getInventoryItem(item_id)
         if (!item) return cors(NextResponse.json({ error: 'Item not found' }, { status: 404 }))
         const currentQty = Number(item.current_quantity) || 0
         const qty = Number(quantity_issued)
         if (currentQty < qty) {
-          return cors(NextResponse.json(
-            { error: `Insufficient stock. Available: ${currentQty}` },
-            { status: 400 }
-          ))
+          return cors(
+            NextResponse.json(
+              { error: `Insufficient stock. Available: ${currentQty}` },
+              { status: 400 }
+            )
+          )
         }
         const unitPrice = Number(item.unit_price) || 0
         const amount_due = Math.round(qty * unitPrice * 100) / 100
@@ -405,10 +433,9 @@ async function handleRoute(request, { params }) {
       const authCtx = await getRequestAuth()
       if (!authCtx) return cors(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
       if (!(await canAccessStock(authCtx.userId))) {
-        return cors(NextResponse.json(
-          { error: 'Unauthorized: Missing stock permissions' },
-          { status: 403 }
-        ))
+        return cors(
+          NextResponse.json({ error: 'Unauthorized: Missing stock permissions' }, { status: 403 })
+        )
       }
       const url = new URL(request.url)
       const limit = Math.min(parseInt(url.searchParams.get('limit') || '50', 10), 100)
@@ -441,17 +468,18 @@ async function handleRoute(request, { params }) {
       const { item_id, quantity_added, notes } = body
       const qty = Number(quantity_added)
       if (!item_id || qty === 0 || Number.isNaN(qty)) {
-        return cors(NextResponse.json(
-          { error: 'Missing or invalid item_id or quantity_added (non-zero)' },
-          { status: 400 }
-        ))
+        return cors(
+          NextResponse.json(
+            { error: 'Missing or invalid item_id or quantity_added (non-zero)' },
+            { status: 400 }
+          )
+        )
       }
       const adjustedByProfileId = await repo.getProfileCoreIdByUserId(authCtx.userId)
       if (!adjustedByProfileId) {
-        return cors(NextResponse.json(
-          { error: 'Your profile not found in profiles_core' },
-          { status: 403 }
-        ))
+        return cors(
+          NextResponse.json({ error: 'Your profile not found in profiles_core' }, { status: 403 })
+        )
       }
       const result = await repo.adjustInventoryStock(item_id, qty, notes, adjustedByProfileId)
       if (result.error) {

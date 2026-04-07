@@ -12,14 +12,10 @@ export default function IDCardsPage() {
             <CreditCard className="h-7 w-7 text-primary" />
           </div>
           <CardTitle className="text-lg">ID Cards</CardTitle>
-          <CardDescription>
-            Distribute and manage volunteer identification cards.
-          </CardDescription>
+          <CardDescription>Distribute and manage volunteer identification cards.</CardDescription>
         </CardHeader>
         <CardContent className="text-center">
-          <p className="text-sm text-muted-foreground">
-            This module is coming soon.
-          </p>
+          <p className="text-sm text-muted-foreground">This module is coming soon.</p>
         </CardContent>
       </Card>
     </div>

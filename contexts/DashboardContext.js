@@ -19,9 +19,7 @@ export function DashboardProvider({ children }) {
   const router = useRouter()
   const queryClient = useQueryClient()
 
-  const session = userId
-    ? { access_token: '', user: clerkUser ?? { id: userId } }
-    : null
+  const session = userId ? { access_token: '', user: clerkUser ?? { id: userId } } : null
 
   useEffect(() => {
     const init = async () => {

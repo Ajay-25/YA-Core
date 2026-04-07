@@ -1,0 +1,15 @@
+node_modules
+.next
+out
+build
+dist
+coverage
+.yarn
+.pnp.cjs
+.pnp.loader.mjs
+yarn.lock
+package-lock.json
+*.min.js
+.git
+.cursor
+drizzle

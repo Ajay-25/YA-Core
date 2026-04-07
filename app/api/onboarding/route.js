@@ -51,10 +51,12 @@ export async function POST(request) {
     }
 
     if (profile.user_id && profile.user_id !== authCtx.userId) {
-      return cors(NextResponse.json(
-        { error: 'This profile is already linked to another account' },
-        { status: 409 }
-      ))
+      return cors(
+        NextResponse.json(
+          { error: 'This profile is already linked to another account' },
+          { status: 409 }
+        )
+      )
     }
 
     if (profile.user_id === authCtx.userId) {

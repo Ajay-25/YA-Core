@@ -9,9 +9,7 @@ export function FormField({ field, value, onChange, disabled }) {
   if (field.type === 'select') {
     return (
       <div className="space-y-1">
-        <Label className="text-xs font-medium text-muted-foreground">
-          {field.label}
-        </Label>
+        <Label className="text-xs font-medium text-muted-foreground">{field.label}</Label>
         <select
           value={val}
           onChange={(e) => onChange(field.key, e.target.value)}
@@ -32,9 +30,7 @@ export function FormField({ field, value, onChange, disabled }) {
   if (field.type === 'textarea') {
     return (
       <div className="space-y-1 sm:col-span-2">
-        <Label className="text-xs font-medium text-muted-foreground">
-          {field.label}
-        </Label>
+        <Label className="text-xs font-medium text-muted-foreground">{field.label}</Label>
         <textarea
           value={val}
           onChange={(e) => onChange(field.key, e.target.value)}
@@ -48,9 +44,7 @@ export function FormField({ field, value, onChange, disabled }) {
 
   return (
     <div className="space-y-1">
-      <Label className="text-xs font-medium text-muted-foreground">
-        {field.label}
-      </Label>
+      <Label className="text-xs font-medium text-muted-foreground">{field.label}</Label>
       <Input
         type={field.type || 'text'}
         value={val}
@@ -87,4 +81,3 @@ export function FieldGroup({ title, icon, fields, formData, onChange, disabled }
     </div>
   )
 }
-
