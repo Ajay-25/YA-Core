@@ -325,16 +325,16 @@ async function handleRoute(request, { params }) {
         return cors(NextResponse.json({ error: 'Forbidden' }, { status: 403 }))
       }
       const body = await request.json()
-      const { volunteer_id, item_id, quantity_issued, payment_method } = body
-      if (!volunteer_id || !item_id || quantity_issued == null || quantity_issued <= 0) {
+      const { volunteer_id, payment_method } = body
+      const batchItems = Array.isArray(body.items) ? body.items : null
+
+      if (!volunteer_id || !['cash', 'upi', 'waived', 'pending'].includes(payment_method)) {
         return cors(NextResponse.json(
-          { error: 'Missing or invalid volunteer_id, item_id, or quantity_issued' },
+          { error: 'Missing volunteer_id or invalid payment_method' },
           { status: 400 }
         ))
       }
-      if (!['cash', 'upi', 'waived', 'pending'].includes(payment_method)) {
-        return cors(NextResponse.json({ error: 'Invalid payment_method' }, { status: 400 }))
-      }
+
       const volunteerProfileId = await repo.resolveVolunteerProfileId(volunteer_id)
       if (!volunteerProfileId) {
         return cors(NextResponse.json({ error: 'Volunteer not found in profiles' }, { status: 404 }))
@@ -346,19 +346,46 @@ async function handleRoute(request, { params }) {
           { status: 403 }
         ))
       }
-      const item = await repo.getInventoryItem(item_id)
-      if (!item) return cors(NextResponse.json({ error: 'Item not found' }, { status: 404 }))
-      const currentQty = Number(item.current_quantity) || 0
-      const qty = Number(quantity_issued)
-      if (currentQty < qty) {
-        return cors(NextResponse.json(
-          { error: `Insufficient stock. Available: ${currentQty}` },
-          { status: 400 }
-        ))
-      }
-      const unitPrice = Number(item.unit_price) || 0
-      const amount_due = Math.round(qty * unitPrice * 100) / 100
+
       try {
+        if (batchItems && batchItems.length > 0) {
+          const lines = batchItems.map((row) => ({
+            itemId: row.item_id,
+            qty: Number(row.quantity_issued),
+          }))
+          const result = await repo.issueInventoryLines({
+            volunteerProfileId,
+            issuedByProfileId,
+            payment_method,
+            lines,
+          })
+          if (result.error) {
+            return cors(NextResponse.json({ error: result.error }, { status: result.status || 400 }))
+          }
+          return cors(
+            NextResponse.json({ status: 'ok', data: result.logs, count: result.logs.length })
+          )
+        }
+
+        const { item_id, quantity_issued } = body
+        if (!item_id || quantity_issued == null || quantity_issued <= 0) {
+          return cors(NextResponse.json(
+            { error: 'Missing or invalid item_id or quantity_issued (or send items: [])' },
+            { status: 400 }
+          ))
+        }
+        const item = await repo.getInventoryItem(item_id)
+        if (!item) return cors(NextResponse.json({ error: 'Item not found' }, { status: 404 }))
+        const currentQty = Number(item.current_quantity) || 0
+        const qty = Number(quantity_issued)
+        if (currentQty < qty) {
+          return cors(NextResponse.json(
+            { error: `Insufficient stock. Available: ${currentQty}` },
+            { status: 400 }
+          ))
+        }
+        const unitPrice = Number(item.unit_price) || 0
+        const amount_due = Math.round(qty * unitPrice * 100) / 100
         const log = await repo.insertInventoryIssue({
           volunteerProfileId,
           itemId: item_id,
