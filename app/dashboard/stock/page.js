@@ -86,7 +86,8 @@ function newIssueLine() {
   return {
     uid: `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
     itemId: '',
-    pieceQty: 1,
+    /** String so the field can be cleared while typing (mobile-friendly); min 1 applied on blur. */
+    pieceQty: '1',
     meterStr: '',
   }
 }
@@ -94,7 +95,12 @@ function newIssueLine() {
 function quantityForLine(line, item) {
   if (!item) return 0
   const piece = (item.unit_type || 'piece') === 'piece'
-  if (piece) return Math.max(1, Number(line.pieceQty) || 1)
+  if (piece) {
+    const raw = String(line.pieceQty ?? '').trim()
+    if (raw === '') return 0
+    const n = parseInt(raw, 10)
+    return Number.isFinite(n) && n > 0 ? n : 0
+  }
   return parseFloat(line.meterStr) || 0
 }
 
@@ -549,7 +555,7 @@ function IssueItemTab({ session }) {
                     onChange={(e) =>
                       updateIssueLine(line.uid, {
                         itemId: e.target.value,
-                        pieceQty: 1,
+                        pieceQty: '1',
                         meterStr: '',
                       })
                     }
@@ -573,15 +579,25 @@ function IssueItemTab({ session }) {
                         <div>
                           <Label className="text-xs text-muted-foreground">Quantity (pieces)</Label>
                           <Input
-                            type="number"
-                            min={1}
-                            step={1}
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            autoComplete="off"
+                            placeholder="1"
                             value={line.pieceQty}
-                            onChange={(e) =>
-                              updateIssueLine(line.uid, {
-                                pieceQty: Math.max(1, parseInt(e.target.value, 10) || 1),
-                              })
-                            }
+                            onChange={(e) => {
+                              const v = e.target.value
+                              if (v === '' || /^\d+$/.test(v)) {
+                                updateIssueLine(line.uid, { pieceQty: v })
+                              }
+                            }}
+                            onBlur={() => {
+                              const raw = String(line.pieceQty ?? '').trim()
+                              const n = parseInt(raw, 10)
+                              if (raw === '' || !Number.isFinite(n) || n < 1) {
+                                updateIssueLine(line.uid, { pieceQty: '1' })
+                              }
+                            }}
                             className="h-10 mt-1"
                           />
                         </div>
